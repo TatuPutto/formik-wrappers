@@ -1,12 +1,14 @@
 import { bool, func, object, oneOfType, string } from 'prop-types'
 import AsyncSelect from 'react-select/lib/Async'
+import createFieldComponent from './createFieldComponent'
 import createSelectize from './createSelectize'
 
-const AsyncSelectize = createSelectize(AsyncSelect)
+const AsyncSelectize = createFieldComponent(createSelectize(AsyncSelect, true))
 
 AsyncSelectize.propTypes = {
   field: object.isRequired,
-  loadOptions: func.isRequired,
+  loadOptions: func,
+  loadUrl: string,
   backspaceRemovesValue: bool,
   convert: oneOfType([bool, object]),
   defaultOptions: bool,

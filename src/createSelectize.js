@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react'
 
 /* eslint-disable react/prop-types */
-const createSelectize = (WrappedSelectize) => {
+const createSelectize = (WrappedSelectize, async = false) => {
   return class Selectize extends PureComponent {
     createIdNamePair = (option) => {
       const convert = this.props.convert
@@ -102,6 +102,48 @@ const createSelectize = (WrappedSelectize) => {
       }
     }
 
+    loadOptionsFromUrl = () => {
+      return fetch(this.getLoadUrl())
+        .then(response => response.json())
+        .then(items => items.map(this.createOption))
+    }
+
+    getLoadUrl = () => {
+      const { dataSource, loadUrl } = this.props
+
+      if (loadUrl) {
+        return loadUrl
+      }
+
+      let url = this.replacePlaceholderWithValue(dataSource.url)
+
+      if (dataSource.params) {
+        const queryStr = Object.keys(dataSource.params).reduce((queryStr, paramName, i) => {
+          if (i > 0) {
+            queryStr += '&'
+          }
+          queryStr += this.replacePlaceholderWithValue(dataSource.params[paramName])
+          return queryStr
+        }, '')
+
+        url += `?${queryStr}`
+      }
+      
+      return url
+    }
+
+    replacePlaceholderWithValue = (placeholderOrValue) => {
+      if (typeof placeholderOrValue !== 'string') {
+        return placeholderOrValue
+      }
+
+      return placeholderOrValue.replace(/\B\$\w+/, (match) => {
+        const fieldName = match.substring(1)
+        const formValue = this.props.form.values[fieldName]
+        return encodeURIComponent(formValue)
+      })
+    }
+
     createCustomOptionLabel = (option, { context }) => {
       if (context === 'menu') {
         return (
@@ -119,12 +161,38 @@ const createSelectize = (WrappedSelectize) => {
       }
     }
 
+    getTypeSpecificProps = () => {
+      if (async) {
+        return this.getAsyncProps()
+      } else {
+        return this.getSyncProps()
+      }
+    }
+
+    getAsyncProps = () => {
+      const asyncProps = {}
+
+      if (this.props.loadOptions) {
+        asyncProps.loadOptions = this.props.loadOptions
+      } else {
+        asyncProps.loadOptions = this.loadOptionsFromUrl
+      }
+
+      return asyncProps
+    }
+
+    getSyncProps = () => {
+      return {
+        options: this.convertArrayToOptions()
+      }
+    }
+
     render() {
       return (
         <WrappedSelectize
           {...this.props}
+          {...this.getTypeSpecificProps()}
           value={this.convertObjectToValue()}
-          options={this.convertArrayToOptions()}
           formatOptionLabel={this.props.includeValueAsSubLabel ? this.createCustomOptionLabel : null}
           onChange={this.handleChange}
         />

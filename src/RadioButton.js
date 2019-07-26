@@ -1,11 +1,13 @@
 import React from 'react'
-import { bool, func, object, oneOfType, number, string } from 'prop-types'
+import { bool, object, oneOfType, number, string } from 'prop-types'
 import classnames from 'classnames'
+
 
 const RadioButton = (props) => {
   const {
     field: { name, value, onChange, onBlur },
     children,
+    text,
     checkedValue,
     disabled,
     disableMargin,
@@ -35,7 +37,8 @@ const RadioButton = (props) => {
         tabIndex={tabIndex}
       />
       {!disableMargin && <span className="mr-1" />}
-      {typeof children === 'function' ? children() : children}
+      {children && children}
+      {text && text}
     </label>
   )
 }
@@ -50,7 +53,8 @@ RadioButton.defaultProps = {
 RadioButton.propTypes = {
   field: object.isRequired,
   checkedValue: oneOfType([bool, string]).isRequired,
-  children: oneOfType([func, object, string]).isRequired,
+  children: oneOfType([object, string]),
+  text: string,
   disabled: bool,
   disableMargin: bool,
   id: string,

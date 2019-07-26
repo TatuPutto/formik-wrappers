@@ -1,5 +1,5 @@
 {
-  "name": "formik-wrappers",
+  "name": "formik-custom-components",
   "version": "0.0.1",
   "description": "Wrappers components to integrate third party components with Formik.",
   "main": "./lib/index.js",
@@ -11,7 +11,7 @@
   "keywords": [
     "react",
     "redux",
-    "redux-form"
+    "formik"
   ],
   "author": "Tatu Putto",
   "license": "MIT",
@@ -48,7 +48,8 @@
     "style-loader": "^0.21.0",
     "webpack": "^4.31.0",
     "webpack-cli": "^3.0.5",
-    "webpack-dev-server": "^3.4.1"
+    "webpack-dev-server": "^3.4.1",
+    "yup": "^0.27.0"
   },
   "directories": {
     "test": "tests"

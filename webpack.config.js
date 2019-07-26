@@ -28,7 +28,7 @@ module.exports = {
   devServer: {
     contentBase: path.resolve(__dirname, 'example'),
     inline: true,
-    port: 3030,
+    port: 3031,
     stats: 'errors-only'
   }
 }

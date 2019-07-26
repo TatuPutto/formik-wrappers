@@ -1,8 +1,9 @@
 import { array, bool, func, object, oneOfType, string } from 'prop-types'
 import Select from 'react-select'
+import createFieldComponent from './createFieldComponent'
 import createSelectize from './createSelectize'
 
-const Selectize = createSelectize(Select)
+const Selectize = createFieldComponent(createSelectize(Select))
 
 Selectize.propTypes = {
   field: object.isRequired,

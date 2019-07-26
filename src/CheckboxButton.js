@@ -1,6 +1,7 @@
 import React from 'react'
 import { bool, object, oneOfType, number, string } from 'prop-types'
 import classnames from 'classnames'
+import createFieldComponent from './createFieldComponent'
 
 const CheckboxButton = (props) => {
   const {
@@ -11,6 +12,7 @@ const CheckboxButton = (props) => {
     disableMargin,
     multiline,
     size,
+    text,
     transparent,
     tabIndex
   } = props
@@ -25,11 +27,11 @@ const CheckboxButton = (props) => {
   })
 
   return (
-    <div className="form-group">
+    <div>
       <label hltmfor={id} className={labelClassName}>
         <input
-          name={name}
           type="checkbox"
+          name={name}
           id={id}
           checked={checked}
           disabled={disabled}
@@ -38,7 +40,8 @@ const CheckboxButton = (props) => {
           onChange={onChange}
         />
         {!disableMargin && <span className="mr-1" />}
-        {typeof children === 'function' ? children() : children}
+        {children && children}
+        {text && text}
       </label>
     </div>
   )
@@ -55,7 +58,8 @@ CheckboxButton.defaultProps = {
 
 CheckboxButton.propTypes = {
   field: object.isRequired,
-  children: oneOfType([object, string]).isRequired,
+  children: oneOfType([object, string]),
+  text: string,
   id: string,
   disabled: bool,
   disableMargin: bool,
@@ -65,4 +69,5 @@ CheckboxButton.propTypes = {
   transparent: bool
 }
 
-export default CheckboxButton
+// export default CheckboxButton
+export default createFieldComponent(CheckboxButton)
