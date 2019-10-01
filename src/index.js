@@ -1,6 +1,7 @@
 export { default as AsyncSelectize } from './AsyncSelectize'
 export { default as CheckboxButton } from './CheckboxButton'
-// export { default as Checkbox } from './Checkbox'
+export { default as CheckboxButtonGroup } from './CheckboxButtonGroup'
+export { default as Dropzone } from './Dropzone'
 export { default as List } from './List'
 export { default as RadioButton } from './RadioButton'
 export { default as RadioButtonGroup } from './RadioButtonGroup'

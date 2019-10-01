@@ -8,6 +8,7 @@ const RadioButton = (props) => {
     field: { name, value, onChange, onBlur },
     children,
     text,
+    align,
     checkedValue,
     disabled,
     disableMargin,
@@ -20,7 +21,8 @@ const RadioButton = (props) => {
   const labelClassName = classnames('btn btn-outline-secondary', {
     'active': checked,
     'disabled': disabled,
-    [`btn-${size}`]: size
+    [`btn-${size}`]: size,
+    [`text-${align}`]: align
   })
 
   return (
@@ -55,6 +57,7 @@ RadioButton.propTypes = {
   checkedValue: oneOfType([bool, string]).isRequired,
   children: oneOfType([object, string]),
   text: string,
+  align: string,
   disabled: bool,
   disableMargin: bool,
   id: string,

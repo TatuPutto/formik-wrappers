@@ -115,33 +115,79 @@ const createSelectize = (WrappedSelectize, async = false) => {
         return loadUrl
       }
 
-      let url = this.replacePlaceholderWithValue(dataSource.url)
+      let url = dataSource.url
 
-      if (dataSource.params) {
-        const queryStr = Object.keys(dataSource.params).reduce((queryStr, paramName, i) => {
+      // let url = this.replacePlaceholderWithValue(dataSource.url)
+
+      if (dataSource.queryParams) {
+        const queryStr = Object.keys(dataSource.queryParams).reduce((queryStr, paramName, i) => {
           if (i > 0) {
             queryStr += '&'
           }
-          queryStr += this.replacePlaceholderWithValue(dataSource.params[paramName])
+          queryStr += `${paramName}=`
+          queryStr += this.replacePlaceholderWithValue(dataSource.queryParams[paramName])
           return queryStr
         }, '')
 
         url += `?${queryStr}`
       }
-      
+
       return url
     }
 
     replacePlaceholderWithValue = (placeholderOrValue) => {
+      // console.log('PLACEHOLDERORVALUE', placeholderOrValue)
       if (typeof placeholderOrValue !== 'string') {
         return placeholderOrValue
       }
 
-      return placeholderOrValue.replace(/\B\$\w+/, (match) => {
-        const fieldName = match.substring(1)
-        const formValue = this.props.form.values[fieldName]
+      const pathParts = placeholderOrValue.split('.')
+
+      if (pathParts.length > 1) {
+        let formValue = this.createPathToFormValue(this.props.form.values, pathParts)
+        console.log('@createSElectize FORMVALUE', formValue)
+        return encodeURIComponent(formValue)
+      }
+
+      return this.props.form.values[pathParts[0]]
+
+
+
+      // return placeholderOrValue.replace(/\B\$\w+/, (match) => {
+      // return placeholderOrValue.replace(/\B\$^\s/, (match) => {
+      return placeholderOrValue.replace(/$(\S+)/, (match) => {
+        console.log('MATCH', match)
+
+        const placeholder = match.substring(1)
+        const pathParts = placeholder.split('.')
+        console.log('PATHPARTS', pathParts)
+        let formValue
+
+        // if (pathparts.length === 1) {
+        //   formValue = this.props.form.values[pathparts[0]]
+        // } else {
+        //   formValue = this.props.form.values[...pathparts]
+        // }
+
+        formValue = this.createPathToFormValue(this.props.form.values, pathParts)
+        console.log('@createSElectize FORMVALUE', formValue)
+
+
         return encodeURIComponent(formValue)
       })
+    }
+                                  //   ['serviceProvider', 'businessId']
+
+    createPathToFormValue = (value, pathParts) => {
+      console.log('@createPathToFormValue', value);
+console.log('PATHPARTS', pathParts)
+
+
+      if (pathParts.length > 1) {
+        return this.createPathToFormValue(value[pathParts[0]], pathParts.slice(1))
+      } else {
+        return value[pathParts[0]]
+      }
     }
 
     createCustomOptionLabel = (option, { context }) => {
@@ -192,6 +238,7 @@ const createSelectize = (WrappedSelectize, async = false) => {
         <WrappedSelectize
           {...this.props}
           {...this.getTypeSpecificProps()}
+          key={new Date().getTime() + Math.random()}
           value={this.convertObjectToValue()}
           formatOptionLabel={this.props.includeValueAsSubLabel ? this.createCustomOptionLabel : null}
           onChange={this.handleChange}

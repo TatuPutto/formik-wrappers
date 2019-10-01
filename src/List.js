@@ -4,6 +4,20 @@ import { array, bool, object, oneOfType, number, string } from 'prop-types'
 
 class List extends PureComponent {
 
+  componentDidMount() {
+    if (!Array.isArray(this.getRows()) || this.props.initializeWithEmptyRow) {
+      this.props.push(this.initializeNewRow());
+    }
+  }
+
+  getRows = () => {
+    return this.props.form.values[this.props.name]
+  }
+
+  getAmountOfRows = () => {
+    return this.getRows().length
+  }
+
   renderFields = (index) => {
     const {
       name,
@@ -26,14 +40,21 @@ class List extends PureComponent {
   }
 
   initializeNewRow = () => {
-    return this.props.order.reduce((row, fieldName) => {
-      row[fieldName] = ''
-      return row
+    const { order, initialValues } = this.props;
+
+    return order.reduce((row, fieldName) => {
+      if (initialValues && initialValues.hasOwnProperty(fieldName)) {
+        row[fieldName] = initialValues[fieldName]
+        return row
+      } else {
+        row[fieldName] = ''
+        return row
+      }
     }, {})
   }
 
   removeItem = (index) => {
-    if (this.props.form.values[this.props.name].length === 1) {
+    if (this.getAmountOfRows() === 1) {
       this.props.remove(index)
       this.props.insert(index, this.initializeNewRow())
     } else {
@@ -41,9 +62,23 @@ class List extends PureComponent {
     }
   }
 
+  canRemoveRow = (index) => {
+    if (this.getAmountOfRows() === 1 && this.isEmptyRow(index)) {
+      return false
+    } else {
+      return true
+    }
+  }
+
+  isEmptyRow = (index) => {
+    const rows = this.getRows()
+    return Object.values(rows[index]).every((value) => !value)
+  }
+
   render() {
     const {
       form: { values },
+      name,
       remove,
       insert,
       push,
@@ -52,12 +87,14 @@ class List extends PureComponent {
 
     return (
       <div className="form-group">
-        {values.contacts && values.contacts.length > 0 &&
-          values.contacts.map((contact, index) => {
+        {values[name] && values[name].length > 0 &&
+          values[name].map((contact, index) => {
+            const canRemoveRow = this.canRemoveRow(index)
+
             return (
               <div key={index}>
-                <div  className={controlled ? "row" : ""}>
-                  <div className={controlled ? "col-11" : ""}>
+                <div  className={controlled && canRemoveRow ? "row" : ""}>
+                  <div className={controlled && canRemoveRow ? "col-11" : ""}>
 
                     <div className="row">
                       {this.renderFields(index)}
@@ -67,18 +104,23 @@ class List extends PureComponent {
 
                   {controlled &&
                     <Fragment>
-                      <div className={controlled ? "col-1" : ""}>
+                      <div className={controlled && canRemoveRow ? "col-1" : ""}>
 
                         <label className="d-block invisible">
                           -
                         </label>
-                        <button
-                          type="button"
-                          className="btn btn-outline-secondary"
-                          onClick={() => this.removeItem(index)} // remove a friend from the list
-                        >
-                          <span className="fas fa-trash-alt" />
-                        </button>
+                        {canRemoveRow &&
+                          <button
+                            type="button"
+                            className="btn btn-outline-secondary"
+                            onClick={() => this.removeItem(index)} // remove a friend from the list
+                          >
+                            <span className="fas fa-trash-alt" />
+                          </button>
+                        }
+
+
+
                       {/*}<button
                           type="button"
                           onClick={() => insert(index, '')} // insert an empty string at a position
@@ -90,7 +132,7 @@ class List extends PureComponent {
 
 
 
-                    {index === values.contacts.length - 1 &&
+                    {index === values[name].length - 1 &&
                       <button
                         type="button"
                         className="btn btn-link"

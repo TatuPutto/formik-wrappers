@@ -10,11 +10,13 @@ const CheckboxButton = (props) => {
     children,
     disabled,
     disableMargin,
+    fullWidth,
     multiline,
     size,
     text,
+    align,
     transparent,
-    tabIndex
+    tabIndex,
   } = props
 
   const checked = value === true
@@ -23,11 +25,12 @@ const CheckboxButton = (props) => {
     'btn-multiline text-left': multiline,
     [`btn-${size}`]: size,
     'active': checked,
-    'disabled': disabled
+    'disabled': disabled,
+    [`text-${align}`]: align,
+    'w-100': fullWidth,
   })
 
   return (
-    <div>
       <label hltmfor={id} className={labelClassName}>
         <input
           type="checkbox"
@@ -43,7 +46,7 @@ const CheckboxButton = (props) => {
         {children && children}
         {text && text}
       </label>
-    </div>
+
   )
 }
 
@@ -61,6 +64,8 @@ CheckboxButton.propTypes = {
   children: oneOfType([object, string]),
   text: string,
   id: string,
+  align: string,
+  fullWidth: bool,
   disabled: bool,
   disableMargin: bool,
   multiline: bool,
@@ -69,5 +74,5 @@ CheckboxButton.propTypes = {
   transparent: bool
 }
 
-// export default CheckboxButton
-export default createFieldComponent(CheckboxButton)
+export default CheckboxButton
+// export default createFieldComponent(CheckboxButton)

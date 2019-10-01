@@ -16,8 +16,16 @@ class Text extends PureComponent {
     })
   }
 
+  handleChange = (e) => {
+    if (this.props.onChange) {
+      return this.props.onChange(e, this.props.field.onChange)
+    } else {
+      return this.props.field.onChange(e)
+    }
+  }
+
   renderInput = () => {
-    const { field, placeholder, autoComplete } = this.props
+    const { field, placeholder, autoComplete, disabled } = this.props
 
     return (
       <input
@@ -25,7 +33,9 @@ class Text extends PureComponent {
         type="text"
         className={this.createInputClassName()}
         placeholder={placeholder}
+        disabled={disabled}
         autoComplete={autoComplete ? 'on' : 'off'}
+        onChange={this.handleChange}
       />
     )
   }
@@ -47,7 +57,8 @@ Text.defaultProps = {
   uppercase: false,
   lowercase: false,
   labelClassName: "upper-label",
-  required: true
+  required: true,
+  disabled: false,
 }
 
 Text.propTypes = {
