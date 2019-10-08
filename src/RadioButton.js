@@ -5,6 +5,7 @@ import classnames from 'classnames'
 
 const RadioButton = (props) => {
   const {
+    form: { setFieldValue },
     field: { name, value, onChange, onBlur },
     children,
     text,
@@ -14,19 +15,22 @@ const RadioButton = (props) => {
     disableMargin,
     id,
     size,
+    fullWidth,
+    width,
     tabIndex
   } = props
 
   const checked = value === checkedValue
-  const labelClassName = classnames('btn btn-outline-secondary', {
+  const labelClassName = classnames('btn btn-outline-secondary mb-0', {
     'active': checked,
     'disabled': disabled,
     [`btn-${size}`]: size,
-    [`text-${align}`]: align
+    [`text-${align}`]: align,
+    'w-100': fullWidth
   })
 
   return (
-    <label hltmfor={id} className={labelClassName}>
+    <label hltmfor={id} className={labelClassName} style={width ? { width: `${width}%` } : null}>
       <input
         name={name}
         type="radio"
@@ -34,7 +38,15 @@ const RadioButton = (props) => {
         checked={checked}
         value={checkedValue}
         onBlur={onBlur}
-        onChange={onChange}
+        onChange={(e) => {
+          if (e.target.value === 'true') {
+            setFieldValue(name, true)
+          } else if (e.target.value === 'false') {
+            setFieldValue(name, false)
+          } else {
+            onChange(e)
+          }
+        }}
         disabled={disabled}
         tabIndex={tabIndex}
       />
@@ -49,6 +61,7 @@ RadioButton.defaultProps = {
   id: null,
   disabled: false,
   disableMargin: false,
+  fullWidth: false,
   tabIndex: null,
 }
 

@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react'
 import { bool, func, object, string } from 'prop-types'
 import { getIn } from 'formik'
+import classnames from 'classnames'
 import Label from './Label'
 
 
@@ -11,6 +12,7 @@ const createFieldComponent = (Component) => {
     static propTypes = {
       form: object.isRequired,
       field: object.isRequired,
+      disableGutter: bool.isRequired,
       displayErrorMessage: bool.isRequired,
       required: bool.isRequired,
       label: string,
@@ -43,7 +45,7 @@ const createFieldComponent = (Component) => {
       if (label) {
         return (
           <Label
-            text={label}
+            label={label}
             render={renderLabel}
             required={required}
             hasErrors={this.hasErrors()}
@@ -74,8 +76,12 @@ const createFieldComponent = (Component) => {
     }
 
     render() {
+      const wrapperClassName = classnames({
+        'form-group': !this.props.disableGutter
+      })
+
       return (
-        <div className="form-group">
+        <div className={wrapperClassName}>
           {this.renderLabel()}
           <Component {...this.props} />
           {this.renderErrorMessage()}
