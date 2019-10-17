@@ -6,7 +6,7 @@ import classnames from 'classnames'
 const renderIcon = (required, hasErrors, hasValue, iconPosition = 'start') => {
   const iconClassName = classnames('fas', {
     'fa-check text-success': required && !hasErrors && hasValue,
-    'fa-asterisk text-danger': hasErrors || required && !hasValue,
+    'fa-asterisk text-warning': hasErrors || required && !hasValue,
     'mr-2': iconPosition === 'start',
     'ml-2': iconPosition === 'end'
   })

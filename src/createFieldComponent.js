@@ -1,13 +1,19 @@
-import React, { PureComponent } from 'react'
+import React, { PureComponent, Fragment } from 'react'
 import { bool, func, object, string } from 'prop-types'
 import { getIn } from 'formik'
 import classnames from 'classnames'
 import Label from './Label'
+import colors from './constants'
 
+const defaultArgs = {
+  withWrapper: true,
+  withLabel: true,
+  withError: true
+}
 
-const createFieldComponent = (Component) => {
+const createFieldComponent = (Component, args = defaultArgs) => {
 
-  return class FieldComponent extends PureComponent {
+  return class extends PureComponent {
 
     static propTypes = {
       form: object.isRequired,
@@ -39,7 +45,28 @@ const createFieldComponent = (Component) => {
       return Boolean(this.getValue())
     }
 
+    getHighlightStyles = () => {
+      const { highlightWhenRequired, highlightWhenError } = this.props
+      const hasErrors = this.hasErrors()
+      const value = this.getValue()
+      const styles = {}
+
+      if (highlightWhenError && hasErrors) {
+        styles.borderColor = colors.error
+      }
+
+      if (highlightWhenRequired && (value === null || value === undefined)) {
+        styles.borderColor = colors.warning
+      }
+
+      return styles
+    }
+
     renderLabel = () => {
+      if (!args.withLabel) {
+        return null
+      }
+
       const { label, renderLabel, required } = this.props
 
       if (label) {
@@ -58,7 +85,9 @@ const createFieldComponent = (Component) => {
     }
 
     renderErrorMessage = () => {
-      if (!this.props.displayErrorMessage) return null
+      if (!args.withError || !this.props.displayErrorMessage) {
+        return null
+      }
 
       const error = this.getErrors()
       const touched = this.isTouched()
@@ -76,17 +105,37 @@ const createFieldComponent = (Component) => {
     }
 
     render() {
-      const wrapperClassName = classnames({
-        'form-group': !this.props.disableGutter
-      })
+      return <Component {...this.props} />
 
-      return (
-        <div className={wrapperClassName}>
-          {this.renderLabel()}
-          <Component {...this.props} />
-          {this.renderErrorMessage()}
-        </div>
-      )
+
+      if (args.withWrapper) {
+        const wrapperClassName = classnames({
+          'form-group': !this.props.disableGutter
+        })
+
+        return (
+          <div className={wrapperClassName}>
+            {this.renderLabel()}
+            <Component
+              {...this.props}
+              style={this.getHighlightStyles()}
+            />
+            {this.renderErrorMessage()}
+          </div>
+        )
+      } else {
+        return (
+          <Fragment>
+            {this.renderLabel()}
+            <Component
+              {...this.props}
+              style={this.getHighlightStyles()}
+            />
+            {this.renderErrorMessage()}
+          </Fragment>
+        )
+      }
+
     }
 
   }

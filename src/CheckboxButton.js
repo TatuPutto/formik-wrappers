@@ -40,7 +40,13 @@ const CheckboxButton = (props) => {
           disabled={disabled}
           tabIndex={tabIndex}
           onBlur={onBlur}
-          onChange={onChange}
+          onChange={() => {
+            if (props.hasOwnProperty('onChange')) {
+              props.onChange(!value)
+            }
+            
+            props.form.setFieldValue(name, !value, true)
+          }}
         />
         {!disableMargin && <span className="mr-1" />}
         {children && children}

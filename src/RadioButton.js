@@ -1,6 +1,7 @@
 import React from 'react'
 import { bool, object, oneOfType, number, string } from 'prop-types'
 import classnames from 'classnames'
+import createFieldComponent from './createFieldComponent'
 
 
 const RadioButton = (props) => {
@@ -17,6 +18,7 @@ const RadioButton = (props) => {
     size,
     fullWidth,
     width,
+    style,
     tabIndex
   } = props
 
@@ -29,8 +31,17 @@ const RadioButton = (props) => {
     'w-100': fullWidth
   })
 
+  const labelStyles = {
+    ...style,
+    ...width ? { width } : null
+  }
+
   return (
-    <label hltmfor={id} className={labelClassName} style={width ? { width: `${width}%` } : null}>
+    <label
+      hltmfor={id}
+      className={labelClassName}
+      style={labelStyles}
+    >
       <input
         name={name}
         type="radio"
@@ -78,4 +89,7 @@ RadioButton.propTypes = {
   tabIndex: number
 }
 
-export default RadioButton
+export default createFieldComponent(
+  RadioButton,
+  { withLabel: false, withError: false, withWrapper: false }
+)

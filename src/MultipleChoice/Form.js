@@ -14,13 +14,13 @@ class Form extends PureComponent {
       return (
         <tr>
           {this.renderOptionHeaders()}
-          <th />
+          <th style={{ borderTop: 'none' }} />
         </tr>
       )
     } else {
       return (
         <tr>
-          <th />
+          <th style={{ borderTop: 'none' }} />
           {this.renderOptionHeaders()}
         </tr>
       )
@@ -43,7 +43,8 @@ class Form extends PureComponent {
 
   getHeaderStyles = (i) => {
     const styles = {
-      width: this.props.width
+      width: this.props.optionColumnWidth,
+      borderTop: 'none'
     }
 
     if (i === 0) {
@@ -67,7 +68,7 @@ class Form extends PureComponent {
 
   hasQuestionBeenAnswered = (question, parentSectionName) => {
     const answer = getIn(this.props.form.values, this.getPathToQuestion(question, parentSectionName))
-    console.log('answer: ', answer);
+
     if (answer === undefined || answer === null) {
       return false
     } else {
@@ -80,14 +81,11 @@ class Form extends PureComponent {
       return false
     }
 
-    console.log('question has been answered!');
-
     if (this.props.clarifyAll) {
       return true
     }
 
     if (question.clarification || question.clarify) {
-      console.log('Should display clarification');
       return true
     } else {
       return false
@@ -106,9 +104,6 @@ class Form extends PureComponent {
 
   renderClarification = (question, parentSectionIndex, parentSectionName) => {
     const clarificationConfig = this.getClarificationConfig(question, parentSectionIndex)
-
-    console.log('clarificationConfig', clarificationConfig);
-    console.log('Path to question: ', this.getPathToQuestion(question, parentSectionName));
 
     return (
       <div>
@@ -219,8 +214,6 @@ class Form extends PureComponent {
       'table-striped': this.props.striped
     })
 
-    console.log('MultiForm', this.props);
-
     return (
       <div>
         <table className={tableClassName}>
@@ -242,7 +235,7 @@ Form.defaultProps = {
   disableMargin: false,
   striped: true,
   tabIndex: null,
-  width: '15%',
+  optionColumnWidth: '15%',
 }
 
 Form.propTypes = {

@@ -27,7 +27,7 @@ class Question extends PureComponent {
   }
 
   answerRequiresClarification = () => {
-    if (!this.props.hasOwnProperty('clarification')) {
+    if (!this.props.hasOwnProperty('clarification') || !this.props.clarification) {
       return false
     }
 
@@ -97,18 +97,19 @@ class Question extends PureComponent {
 
     const labelTd = (
       <td className="align-middle py-2">
-        <span className={this.props.nested ? "ml-3" : null}>
+        <div className={this.props.nested ? "ml-3" : null}>
           {this.props.label}
           {this.shouldDisplayClarification() && this.renderClarification()}
-        </span>
+        </div>
       </td>
     )
 
-    const optionsTd = (
-      <td colSpan={colSpan} className="py-2">
-        {this.renderOptions()}
-      </td>
-    )
+    // const optionsTd = (
+    //   <td colSpan={colSpan} className="py-2">
+    //     {this.renderOptions()}
+    //   </td>
+    // )
+    const optionsTd = this.renderOptions();
 
     if (this.props.alignOptionsLeft) {
       return (

@@ -6,7 +6,7 @@ import createFieldComponent from './createFieldComponent'
 
 class Text extends PureComponent {
 
-  createInputClassName = () => {
+  getInputClassName = () => {
     const { className, capitalize, uppercase, lowercase } = this.props
 
     return classnames(className, {
@@ -17,24 +17,27 @@ class Text extends PureComponent {
   }
 
   handleChange = (e) => {
-    if (this.props.onChange) {
-      return this.props.onChange(e, this.props.field.onChange)
-    } else {
-      return this.props.field.onChange(e)
-    }
+    // if (this.props.onChange) {
+    //   return this.props.onChange(e, this.props.field.onChange)
+    // } else {
+      return this.props.form.setFieldValue(this.props.field.name, e.target.value, true)
+    // }
   }
 
   renderInput = () => {
-    const { field, placeholder, autoComplete, disabled } = this.props
+    const { field, placeholder, autoComplete, disabled, style } = this.props
+    const inputClassName = this.getInputClassName()
 
     return (
       <input
         {...field}
         type="text"
-        className={this.createInputClassName()}
+        style={style}
+        className={inputClassName}
         placeholder={placeholder}
         disabled={disabled}
         autoComplete={autoComplete ? 'on' : 'off'}
+        value={field.value}
         onChange={this.handleChange}
       />
     )

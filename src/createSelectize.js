@@ -234,10 +234,13 @@ console.log('PATHPARTS', pathParts)
     }
 
     render() {
+      console.log('@createSElectize', this.props);
+
       return (
         <WrappedSelectize
           {...this.props}
           {...this.getTypeSpecificProps()}
+          isDisabled={this.props.disabled || false}
           key={new Date().getTime() + Math.random()}
           value={this.convertObjectToValue()}
           formatOptionLabel={this.props.includeValueAsSubLabel ? this.createCustomOptionLabel : null}

@@ -21,6 +21,8 @@ module.exports = {
   },
   externals: {
     'react': 'commonjs react',
-    'formik': 'commonjs formik'
+    'formik': 'commonjs formik',
+    'react-datepicker': 'commonjs react-datepicker',
+    'moment': 'commonjs moment'
   }
 }

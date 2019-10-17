@@ -6,7 +6,7 @@ const Section = (props) => {
   const colSpan = props.options.length
 
   const labelTd = (
-    <td className="align-middle py-2">
+    <td className="align-middle py-3">
       <span className={props.nested ? "ml-3" : null}>
         <i>
           {props.label}
