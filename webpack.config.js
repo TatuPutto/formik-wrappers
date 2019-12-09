@@ -28,7 +28,9 @@ module.exports = {
   devServer: {
     contentBase: path.resolve(__dirname, 'example'),
     inline: true,
+    host: '192.168.8.103',
     port: 3031,
+    disableHostCheck: true,
     stats: 'errors-only'
   }
 }

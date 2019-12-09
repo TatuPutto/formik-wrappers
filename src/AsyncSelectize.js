@@ -27,3 +27,5 @@ AsyncSelectize.defaultProps = {
 }
 
 export default AsyncSelectize
+
+// export default createFieldComponent(createSelectize(AsyncSelectize, true))

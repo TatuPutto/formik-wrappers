@@ -1,172 +1,192 @@
 import React, { PureComponent, Fragment } from 'react'
-import { array, bool, object, oneOfType, number, string } from 'prop-types'
+import PropTypes from 'prop-types'
+import classnames from 'classnames'
+
+import { get } from 'lodash'
 
 
 class List extends PureComponent {
 
-  componentDidMount() {
-    if (!Array.isArray(this.getRows()) || this.props.initializeWithEmptyRow) {
-      this.props.push(this.initializeNewRow());
+  renderActions = (item, actions) => {
+    return actions.map((action) => (
+      <button
+        key={action.text}
+        className={classnames('btn', {
+          [`btn-${action.size}`]: action.size,
+          [`btn-${action.color}`]: action.color
+        })}
+        onClick={() => this.handleActionButtonClick(item, action)}
+      >
+        <span className={classnames('fas', `fa-${action.icon}`)} />
+        &nbsp;
+        {action.text}
+      </button>
+    ))
+  }
+
+  handleActionButtonClick = (item, action) => {
+    if (action.role === 'link') {
+      this.props.go(this.resolveString(item, action.to));
     }
   }
 
-  getRows = () => {
-    return this.props.form.values[this.props.name]
+  resolveString = (item, str) => {
+    return str.replace(/\$[\w.]+/g, (match) => {
+
+      return item[match.substring(1)]
+
+    });
   }
 
-  getAmountOfRows = () => {
-    return this.getRows().length
+  resolveToValue = (item, sourceKeyOrArrayOfKeys) => {
+    if (typeof sourceKeyOrArrayOfKeys === 'object') {
+      return sourceKeyOrArrayOfKeys.map((key) => item[key]).join(' ')
+    } else {
+      return item[sourceKeyOrArrayOfKeys]
+    }
   }
 
-  renderFields = (index) => {
-    const {
-      name,
-      fieldComponent: FieldComponent,
-      order,
-      shape
-    } = this.props
+  renderItem = (item, renderSchema) => {
 
-    return order.map((fieldName) => {
-      const field = shape[fieldName]
-      const fullyQualifiedFieldName = `${name}.${index}.${fieldName}`
+    return renderSchema.map((part, i) => {
+
+      const Component = part.component
+      // const value = part.hasOwnProperty('source') ?
+      //   this.resolveToValue(item, part.source) :
+
+      const value = part.source ?
+        this.resolveToValue(item, part.source) :
+          part.value ?
+            this.resolveString(item, part.value) :
+              null
+
+
+      // {
+      //   component: 'div',
+      //   source: 'name'
+      // }
+      return (
+        <Component
+          {...part.hasOwnProperty('attributes') ? { ...part.attributes } : null}
+          key={i}
+          className={classnames({
+            [part.class]: part.hasOwnProperty('class')
+          })}
+        >
+          {value}
+          {part.hasOwnProperty('children') && this.renderItem(item, part.children)}
+          {part.hasOwnProperty('actions') &&
+            <div>
+              {this.renderActions(item, part.actions)}
+            </div>
+          }
+        </Component>
+      )
+
+
+    })
+
+  }
+
+  mapDataToSchema = (schema, path) => {
+    console.log('SCHEMA', schema)
+    // const data = [
+    //   {
+    //     id: 87,
+    //     name: 'Takamäki Yhtiöt Ky',
+    //     permits: [
+    //       {
+    //         "id": "ec04b5e8-face-4731-9f7f-9150c98be8e8",
+    //         "assignment": "Plasmansyöttötunnelin korjaus",
+    //         "safetyLockings": "{\"mechanicalLocking\":{\"inUse\":true,\"lockId\":1,\"personInCharge\":\"werewr\",\"name\":\"mechanicalLocking\",\"lockingNumber\":\"213123\",\"locked\":true,\"lockedDate\":\"2019-07-01\",\"markedLockedByUser\":\"Takamäki, Support\"}}",
+    //         "siteId": "19729149",
+    //         "contractorId": 87,
+    //         "creatorCompanyId": 87,
+    //         "contractorBusinessId": "0861964-1",
+    //         "contractorName": "Takamäki yhtiöt Ky",
+    //         "permitOwnerId": 83446,
+    //         "permitOwnerFirstName": "Kaarlo",
+    //         "permitOwnerLastName": "Vakkilainen",
+    //         "allLockingsUnlocked": false,
+    //         "startDate": "01.07.2019",
+    //         "endDate": "01.07.2019",
+    //         "nSafetyLockings": 1
+    //       },
+    //       {
+    //         "id": "f38567d8-e679-46e6-b843-6ab29ec40d6e",
+    //         "assignment": "Test",
+    //         "safetyLockings": "{\"mechanicalLocking\":{\"inUse\":true,\"lockId\":1,\"personInCharge\":\"Vastuu henkilö 1\",\"name\":\"mechanicalLocking\",\"lockingNumber\":\"23434\",\"locked\":true,\"lockedDate\":\"2019-07-01\",\"markedLockedByUser\":\"Takamäki, Support\"}}",
+    //         "siteId": "19729149",
+    //         "contractorId": 87,
+    //         "creatorCompanyId": 87,
+    //         "contractorBusinessId": "0861964-1",
+    //         "contractorName": "Takamäki yhtiöt Ky",
+    //         "permitOwnerId": 83446,
+    //         "permitOwnerFirstName": "Kaarlo",
+    //         "permitOwnerLastName": "Vakkilainen",
+    //         "allLockingsUnlocked": false,
+    //         "startDate": "01.07.2019",
+    //         "endDate": "27.07.2019",
+    //         "nSafetyLockings": 1
+    //       }
+    //     ]
+    //   }
+    // ]
+
+    const _that = this;
+
+    function getDataAtPath() {
+      path = `${path}.${schema.source}`
+      console.log('path: ', path);
+      return get(_that.props.data, path)
+    }
+
+    console.log('schema.source: ', schema.source);
+    const items = schema.hasOwnProperty('source') ? getDataAtPath() : this.props.data
+    console.log('ITEMS', items)
+
+    return items.map((item, i) => {
 
       return (
-        <FieldComponent
-          key={fullyQualifiedFieldName}
-          config={{ ...field, name: fullyQualifiedFieldName }}
-        />
+        <div key={item[schema.key]}>
+
+          <div>
+            {this.renderItem(item, schema.render)}
+
+            {schema.children && this.mapDataToSchema(schema.children, path ? path : i)}
+          </div>
+
+        </div>
       )
+
     })
   }
 
-  initializeNewRow = () => {
-    const { order, initialValues } = this.props;
-
-    return order.reduce((row, fieldName) => {
-      if (initialValues && initialValues.hasOwnProperty(fieldName)) {
-        row[fieldName] = initialValues[fieldName]
-        return row
-      } else {
-        row[fieldName] = ''
-        return row
-      }
-    }, {})
-  }
-
-  removeItem = (index) => {
-    if (this.getAmountOfRows() === 1) {
-      this.props.remove(index)
-      this.props.insert(index, this.initializeNewRow())
-    } else {
-      this.props.remove(index)
-    }
-  }
-
-  canRemoveRow = (index) => {
-    if (this.getAmountOfRows() === 1 && this.isEmptyRow(index)) {
-      return false
-    } else {
-      return true
-    }
-  }
-
-  isEmptyRow = (index) => {
-    const rows = this.getRows()
-    return Object.values(rows[index]).every((value) => !value)
-  }
 
   render() {
-    const {
-      form: { values },
-      name,
-      remove,
-      insert,
-      push,
-      controlled = true,
-    } = this.props
+    // const {
+    //   form: { values },
+    //   name,
+    //   remove,
+    //   insert,
+    //   push,
+    //   controlled = true,
+    // } = this.props
+
+    console.log('@List props', this.props);
 
     return (
-      <div className="form-group">
-        {values[name] && values[name].length > 0 &&
-          values[name].map((contact, index) => {
-            const canRemoveRow = this.canRemoveRow(index)
-
-            return (
-              <div key={index}>
-                <div  className={controlled && canRemoveRow ? "row" : ""}>
-                  <div className={controlled && canRemoveRow ? "col-11" : ""}>
-
-                    <div className="row">
-                      {this.renderFields(index)}
-                    </div>
-
-                  </div>
-
-                  {controlled &&
-                    <Fragment>
-                      <div className={controlled && canRemoveRow ? "col-1" : ""}>
-
-                        <label className="d-block invisible">
-                          -
-                        </label>
-                        {canRemoveRow &&
-                          <button
-                            type="button"
-                            className="btn btn-outline-secondary"
-                            onClick={() => this.removeItem(index)} // remove a friend from the list
-                          >
-                            <span className="fas fa-trash-alt" />
-                          </button>
-                        }
-
-
-
-                      {/*}<button
-                          type="button"
-                          onClick={() => insert(index, '')} // insert an empty string at a position
-                        >
-                          +
-                        </button>*/}
-
-                      </div>
-
-
-
-                    {index === values[name].length - 1 &&
-                      <button
-                        type="button"
-                        className="btn btn-link"
-                        onClick={() => push(this.initializeNewRow())}
-                      >
-                        <span className="fas fa-plus mr-1" />
-                        Add new entry
-                      </button>
-                    }
-
-                    </Fragment>
-                  }
-
-
-                </div>
-
-
-              </div>
-            )
-          })
-        }
-
-
-
-      </div>
+      <div>{this.mapDataToSchema(this.props.schema)}</div>
     )
   }
 }
 
 List.propTypes = {
-  field: object.isRequired,
-  children: oneOfType([object, string]),
-  fieldComponent: object.isRequired,
-  shape: array.isRequired,
+  field: PropTypes.object.isRequired,
+  actions: PropTypes.array
+  // children: oneOfType([object, string]),
+  // fieldComponent: object.isRequired,
+  // shape: array.isRequired,
 }
 
 export default List

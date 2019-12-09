@@ -14,7 +14,7 @@ const renderIcon = (required, hasErrors, hasValue, iconPosition = 'start') => {
   return <span className={iconClassName} />
 }
 
-const Label = ({ label, render, required, hasErrors, hasValue }) => {
+const Label = ({ label, render, required, hasErrors, hasValue, diplayIcon = true }) => {
   if (render) {
     return render()
   } else if (label) {
@@ -30,9 +30,9 @@ const Label = ({ label, render, required, hasErrors, hasValue }) => {
       return (
         <div>
           <label className={labelClassName}>
-            {iconPosition === 'start' && renderIcon(required, hasErrors, hasValue, iconPosition)}
+            {diplayIcon && iconPosition === 'start' && renderIcon(required, hasErrors, hasValue, iconPosition)}
             {label.text}
-            {iconPosition === 'end' && renderIcon(required, hasErrors, hasValue, iconPosition)}
+            {diplayIcon && iconPosition === 'end' && renderIcon(required, hasErrors, hasValue, iconPosition)}
           </label>
         </div>
       )

@@ -1,8 +1,8 @@
-import React, { PureComponent } from 'react'
-import { array, bool, func, object, string } from 'prop-types'
+import React, { Fragment, PureComponent } from 'react'
+import { array, bool, func, number, object, string } from 'prop-types'
 import { Field, getIn } from 'formik'
-import RadioButton from '..//RadioButton'
-import RadioButtonGroup from '../RadioButtonGroup'
+import classnames from 'classnames'
+import OptionControl from './OptionControl'
 import Text from '../Text'
 
 
@@ -62,67 +62,59 @@ class Question extends PureComponent {
     }
   }
 
-  renderOptions = () => {
-    const name = `${this.props.field.name}.value`
-
-    if (this.props.renderOptions) {
-      return this.props.renderOptions(name)
-    } else {
-      return (
-        <Field
-          name={name}
-          required
-          fullWidth
-          disableGutter
-          component={RadioButtonGroup}
-        >
-          {this.props.options.map((option) => (
-            <Field
-              name={name}
-              key={`${name}-${option}`}
-              id={`${name}-${option}`}
-              checkedValue={option.value}
-              style={{ width: '50%' }}
-              fullWidth
-              component={RadioButton}
-            />
-          ))}
-        </Field>
-      )
-    }
-  }
-
   renderQuestion = () => {
-    const colSpan = this.props.options.length
 
-    const labelTd = (
-      <td className="align-middle py-2">
-        <div className={this.props.nested ? "ml-3" : null}>
-          {this.props.label}
-          {this.shouldDisplayClarification() && this.renderClarification()}
-        </div>
-      </td>
+    const labelWrapperStyles = {
+      ...this.props.depth && !this.props.condenseLayout ? { marginLeft: `${this.props.depth}rem` } : null
+    }
+
+    const labelEl = (
+      <div style={labelWrapperStyles}>
+        {this.props.label}
+        {this.shouldDisplayClarification() && this.renderClarification()}
+      </div>
     )
 
-    // const optionsTd = (
-    //   <td colSpan={colSpan} className="py-2">
-    //     {this.renderOptions()}
-    //   </td>
-    // )
-    const optionsTd = this.renderOptions();
+    const optionEls = this.props.renderOptions(this.props.field.name)
+
+    if (this.props.condenseLayout) {
+
+      const wrapperClassName = classnames('wrapper', { 'py-2': this.props.depth === 0 })
+      const nestedWrapperClassName = classnames('wrapper', { 'py-2': this.props.depth > 0 })
+
+      return (
+        <div className={wrapperClassName}
+          style={this.props.depth > 0 ? { borderLeft: '3px solid #c6c6c6' } :
+                                        { borderBottom: '1px solid rgb(198, 198, 198)' }}
+        >
+          <div className={nestedWrapperClassName} style={this.props.depth > 0 ? { marginLeft: `${this.props.depth}rem`, ...this.props.isLast ? null : { borderBottom: '1px solid rgb(198, 198, 198)' } } : null}>
+            <div className="py-1 font-weight-bold">
+              {labelEl}
+            </div>
+            <div className="py-1 d-flex flex-row justify-content-between">
+              {optionEls}
+            </div>
+          </div>
+        </div>
+      )
+    }
 
     if (this.props.alignOptionsLeft) {
       return (
         <tr>
-          {optionsTd}
-          {labelTd}
+          {optionEls}
+          <td>
+            {labelEl}
+          </td>
         </tr>
       )
     } else {
       return (
         <tr>
-          {labelTd}
-          {optionsTd}
+          <td>
+            {labelEl}
+          </td>
+          {optionEls}
         </tr>
       )
     }
@@ -141,7 +133,7 @@ Question.defaultProps = {
   disableMargin: false,
   width: '15%',
   alignOptionsLeft: false,
-  nested: false,
+  depth: 0,
 }
 
 Question.propTypes = {
@@ -151,7 +143,7 @@ Question.propTypes = {
   label: string.isRequired,
   alignOptionsLeft: bool,
   clarification: object,
-  nested: bool,
+  depth: number,
   renderOptions: func,
 }
 
