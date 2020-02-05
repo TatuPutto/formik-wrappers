@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react'
 import { components } from 'react-select'
 import { get, set } from 'lodash'
+import InfiniteScroll from 'react-infinite-scroller'
 
 /* eslint-disable react/prop-types */
 const createSelectize = (WrappedSelectize, async = false) => {
@@ -9,26 +10,26 @@ const createSelectize = (WrappedSelectize, async = false) => {
       const {
         convert,
         convertFromString,
-        // convertOutput
+        convertOutput
       } = this.props
 
-      // if (convertOutput) {
-      //   const output = convertOutput.reduce((outputObj, propNameOrConfig) => {
-      //
-      //     if (typeof propNameOrConfig === 'object' && propNameOrConfig.hasOwnProperty('path')) {
-      //       outputObj[propNameOrConfig.as] = get(option, propNameOrConfig.path)
-      //     } else if (typeof propNameOrConfig === 'object' && propNameOrConfig.hasOwnProperty('value')) {
-      //       outputObj[propNameOrConfig.as] = propNameOrConfig.value
-      //     } else {
-      //       outputObj[propNameOrConfig] = get(option, propNameOrConfig)
-      //     }
-      //
-      //     return outputObj
-      //
-      //   }, {})
-      //
-      //   return output
-      // }
+      if (convertOutput) {
+        const output = convertOutput.reduce((outputObj, propNameOrConfig) => {
+
+          if (typeof propNameOrConfig === 'object' && propNameOrConfig.hasOwnProperty('path')) {
+            outputObj[propNameOrConfig.as] = get(option, propNameOrConfig.path)
+          } else if (typeof propNameOrConfig === 'object' && propNameOrConfig.hasOwnProperty('value')) {
+            outputObj[propNameOrConfig.as] = propNameOrConfig.value
+          } else {
+            outputObj[propNameOrConfig] = get(option, propNameOrConfig)
+          }
+
+          return outputObj
+
+        }, {})
+
+        return output
+      }
 
       if (convertFromString) {
         return option.value
@@ -58,7 +59,7 @@ const createSelectize = (WrappedSelectize, async = false) => {
         option = {
           value: baseValue,
           label: baseValue,
-          isDisabled: this.shouldDisable()
+          isDisabled: this.shouldDisable(baseValue)
         }
 
         return option
@@ -78,7 +79,7 @@ const createSelectize = (WrappedSelectize, async = false) => {
         }
       }
 
-      set(option, 'isDisabled', this.shouldDisable())
+      set(option, 'isDisabled', this.shouldDisable(baseValue))
 
       if (includedProps) {
         includedProps.forEach((propNameOrConfig) => {
@@ -213,8 +214,6 @@ const createSelectize = (WrappedSelectize, async = false) => {
         customOnChange,
       } = this.props
 
-      localStorage.setItem(`${this.props.storageId}_valueChanged`, true);
-
       if (onChange) {
         onChange(newValue)
       }
@@ -238,179 +237,55 @@ const createSelectize = (WrappedSelectize, async = false) => {
       }
     }
 
-    loadOptionsFromUrl = () => {
-      return fetch(this.getLoadUrl())
-        .then(response => response.json())
-        .then(items => items.map(this.createOption))
-    }
-
-    // getLoadUrl = () => {}
-
-    getLoadUrl = () => {
-
-      const { loadUrl, dataSource } = this.props
-
-      if (loadUrl) {
-        return loadUrl
+    renderOption = (props) => {
+      if (
+        this.props.includeValueAsSubLabel ||
+        this.props.sublabelProp ||
+        this.props.disabledOptionAlert
+      ) {
+        return (
+          <components.Option {...props}>
+            {this.createCustomOptionLabel(props.data)}
+          </components.Option>
+        )
       }
 
-      let url = dataSource.url
-      let resolvedUrl = dataSource.url;
-
-      if (url.includes('$') && !url) {
-        console.error('DataSource URL has dynamic path parameters but none are defined');
-        throw '';
-      }
-
-      if (url.includes('$')) {
-        resolvedUrl = this.resolvePathParams(resolvedUrl, dataSource.pathParams);
-      }
-
-      if (dataSource.queryParams) {
-        resolvedUrl += this.resolveQueryString(dataSource.queryParams);
-      }
-
-      return resolvedUrl;
-
+      return (
+        <components.Option
+          {...props}
+        />
+      )
     }
 
-    resolveQueryString = (queryParams) => {
-
-      return Object.keys(queryParams).reduce((queryStr, paramName) => {
-
-        const paramValueOrPathToValue = queryParams[paramName];
-
-        let paramValue = paramValueOrPathToValue;
-
-        if (paramValueOrPathToValue.charAt(0) === '$') {
-          paramValue = this.resolveParamValue(paramValueOrPathToValue);
-        }
-
-        if (!queryStr.length) {
-          return `?${paramName}=${paramValue}`;
-        } else {
-          return `&${paramName}=${paramValue}`;
-        }
-
-      }, '');
-
-    }
-
-    resolvePathParams = (url, pathParams) => {
-
-      return url.replace(/\$[\w/]+/g, (match) => {
-
-        const paramName = match.substring(1);
-        const pathToValue = pathParams[paramName].substring(1);
-
-        return this.resolveParamValue(pathToValue);
-
-      });
-
-    }
-
-    resolveParamValue = (pathToValue) => {
-      console.log('@resolveParamValue ', pathToValue);
-      if (pathToValue.includes('meta')) {
-        console.log('this.props.form.values', this.props.form.values);
-        return get(this.props.form.values, pathToValue);
-      } else {
-        return get(this.props.form.values, pathToValue);
-      }
-
-    }
-
-    replacePlaceholderWithValue = (placeholderOrValue) => {
-      // console.log('PLACEHOLDERORVALUE', placeholderOrValue)
-      if (typeof placeholderOrValue !== 'string') {
-        return placeholderOrValue
-      }
-
-      // const pathParts = placeholderOrValue.split('.')
-      //
-      // if (pathParts.length > 1) {
-      //   let formValue = this.createPathToFormValue(this.props.form.values, pathParts)
-      //   return encodeURIComponent(formValue)
-      // }
-      //
-      // return this.props.form.values[pathParts[0]]
-
-
-
-      // return placeholderOrValue.replace(/\B\$\w+/, (match) => {
-      // return placeholderOrValue.replace(/\B\$^\s/, (match) => {
-      return placeholderOrValue.replace(/$(\S+)/, (match) => {
-        console.log('MATCH', match)
-
-        const placeholder = match.substring(1)
-        const pathParts = placeholder.split('.')
-        console.log('PATHPARTS', pathParts)
-        let formValue
-
-        // if (pathparts.length === 1) {
-        //   formValue = this.props.form.values[pathparts[0]]
-        // } else {
-        //   formValue = this.props.form.values[...pathparts]
-        // }
-
-        formValue = this.createPathToFormValue(this.props.form.values, pathParts)
-        console.log('@createSElectize FORMVALUE', formValue)
-
-
-        return encodeURIComponent(formValue)
-      })
-    }
-                                  //   ['serviceProvider', 'businessId']
-
-    createPathToFormValue = (value, pathParts) => {
-      if (pathParts.length > 1) {
-        return this.createPathToFormValue(value[pathParts[0]], pathParts.slice(1))
-      } else {
-        return value[pathParts[0]]
-      }
-    }
-
-    renderOptionLabel = () => {
-      if (this.props.includeValueAsSubLabel || this.props.sublabelProp) {
-        return this.createCustomOptionLabel
-      }
-      // (this.props.includeValueAsSubLabel || this.props.sublabelProp) ? this.createCustomOptionLabel : null
-    }
-
-    createCustomOptionLabel = (option, { context }) => {
+    createCustomOptionLabel = (option) => {
       const { disabledOptionAlert, includeValueAsSubLabel } = this.props
 
-      if (context === 'menu') {
-        return (
-          <div key={option.value}>
-            <div>{option.label}</div>
-            <div className="text-muted">
-              {includeValueAsSubLabel ?
-                <small>{option.value}</small>
-                :
-                <small>{option.sublabel}</small>
-              }
-            </div>
-            {disabledOptionAlert &&
-              <div className={`text-${disabledOptionAlert.color}`}>
-                <span className={`fas fa-${disabledOptionAlert.icon || 'exclamation-triangle'} mr-1`} />
-                {disabledOptionAlert.text}
-              </div>
+      return (
+        <div key={option.value}>
+          <div>{option.label}</div>
+          <div className="text-muted">
+            {includeValueAsSubLabel ?
+              <small>{option.value}</small>
+              :
+              <small>{option.sublabel}</small>
             }
           </div>
-        )
-      } else {
-        return (
-          <div key={option.value}>
-            <div>{option.label}</div>
-          </div>
-        )
-      }
+          {disabledOptionAlert && option.isDisabled &&
+            <div>
+              <small className={`text-${disabledOptionAlert.color}`}>
+                <span className={`fas fa-${disabledOptionAlert.icon || 'exclamation-triangle'} mr-1`} />
+                {disabledOptionAlert.text}
+              </small>
+            </div>
+          }
+        </div>
+      )
     }
 
     getTypeSpecificProps = () => {
       if (async) {
-        return this.getAsyncProps()
+        // return this.getAsyncProps()
+        return {}
       } else {
         return this.getSyncProps()
       }
@@ -481,7 +356,6 @@ const createSelectize = (WrappedSelectize, async = false) => {
         }),
       }
     }
-
     render() {
       return (
         <WrappedSelectize
@@ -495,12 +369,12 @@ const createSelectize = (WrappedSelectize, async = false) => {
           key={new Date().getTime() + Math.random()}
           value={this.convertObjectToValue()}
           noOptionsMessage={this.getNoOptionsMessage}
-          formatOptionLabel={this.renderOptionLabel}
           onChange={this.handleChange}
           onInputChange={this.props.handleSearchChange}
           styles={this.getStyles()}
           components={{
-            Control: this.renderControl
+            Control: this.renderControl,
+            Option: this.renderOption,
           }}
         />
       )
