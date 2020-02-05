@@ -14,8 +14,6 @@ class FieldArray extends PureComponent {
     this.state = {
       expanded: props.initiallyExpandedItem ? [props.initiallyExpandedItem] : []
     }
-
-    console.log('this.state', this.state);
   }
 
   // componentDidMount() {

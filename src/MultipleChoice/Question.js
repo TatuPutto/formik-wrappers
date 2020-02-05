@@ -75,7 +75,7 @@ class Question extends PureComponent {
       </div>
     )
 
-    const optionEls = this.props.renderOptions(this.props.field.name)
+    const optionEls = this.props.renderOptions(`${this.props.field.name}.value`)
 
     if (this.props.condenseLayout) {
 

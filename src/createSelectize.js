@@ -1,49 +1,34 @@
-import React, { Component } from 'react'
+import React, { PureComponent } from 'react'
 import { components } from 'react-select'
-import { get } from 'lodash'
+import { get, set } from 'lodash'
 
 /* eslint-disable react/prop-types */
 const createSelectize = (WrappedSelectize, async = false) => {
-  return class Selectize extends Component {
-
-    shouldComponentUpdate() {
-      if (!async || this.shouldRefresh() || this.valueChanged()) {
-        localStorage.removeItem(`${this.props.storageId}_valueChanged`)
-        return true
-      }
-
-      return false
-    }
-
-    valueChanged = () => {
-      return localStorage.getItem(`${this.props.storageId}_valueChanged`)
-    }
-
+  return class Selectize extends PureComponent {
     createIdNamePair = (option) => {
       const {
         convert,
         convertFromString,
-        convertOutput
+        // convertOutput
       } = this.props
 
-      if (convertOutput) {
-        const output = convertOutput.reduce((outputObj, propNameOrConfig) => {
-
-          if (typeof propNameOrConfig === 'object' && propNameOrConfig.hasOwnProperty('path')) {
-            outputObj[propNameOrConfig.as] = get(option, propNameOrConfig.path)
-          } else if (typeof propNameOrConfig === 'object' && propNameOrConfig.hasOwnProperty('value')) {
-            outputObj[propNameOrConfig.as] = propNameOrConfig.value
-          } else {
-            outputObj[propNameOrConfig] = get(option, propNameOrConfig)
-          }
-
-          return outputObj
-
-        }, {})
-
-        console.log('output', output);
-        return output
-      }
+      // if (convertOutput) {
+      //   const output = convertOutput.reduce((outputObj, propNameOrConfig) => {
+      //
+      //     if (typeof propNameOrConfig === 'object' && propNameOrConfig.hasOwnProperty('path')) {
+      //       outputObj[propNameOrConfig.as] = get(option, propNameOrConfig.path)
+      //     } else if (typeof propNameOrConfig === 'object' && propNameOrConfig.hasOwnProperty('value')) {
+      //       outputObj[propNameOrConfig.as] = propNameOrConfig.value
+      //     } else {
+      //       outputObj[propNameOrConfig] = get(option, propNameOrConfig)
+      //     }
+      //
+      //     return outputObj
+      //
+      //   }, {})
+      //
+      //   return output
+      // }
 
       if (convertFromString) {
         return option.value
@@ -72,7 +57,8 @@ const createSelectize = (WrappedSelectize, async = false) => {
       if (convertFromString) {
         option = {
           value: baseValue,
-          label: baseValue
+          label: baseValue,
+          isDisabled: this.shouldDisable()
         }
 
         return option
@@ -92,6 +78,8 @@ const createSelectize = (WrappedSelectize, async = false) => {
         }
       }
 
+      set(option, 'isDisabled', this.shouldDisable())
+
       if (includedProps) {
         includedProps.forEach((propNameOrConfig) => {
 
@@ -107,6 +95,22 @@ const createSelectize = (WrappedSelectize, async = false) => {
       return option
     }
 
+    shouldDisable = (option) => {
+      const { disableOptionWhen } = this.props
+
+      if (!disableOptionWhen) {
+        return false
+      }
+
+      if (Array.isArray(disableOptionWhen)) {
+        return disableOptionWhen.some((condition) => {
+          return get(option, condition.path) === condition.is
+        })
+      }
+
+      return get(option, disableOptionWhen.path) === disableOptionWhen.is
+    }
+
     resolveFromSourceProps = (object, sourceProps) => {
       if (Array.isArray(sourceProps)) {
         return sourceProps.map((sourceProp) => object[sourceProp]).join(' ')
@@ -116,9 +120,6 @@ const createSelectize = (WrappedSelectize, async = false) => {
     }
 
     resolveToSourceProps = (option, convert) => {
-
-      // return get(this.props.form.values, option.);
-
       let values = { ...this.removeSelectizeProps(option, convert) }
 
       if (Array.isArray(convert.valueSourceProp)) {
@@ -146,15 +147,13 @@ const createSelectize = (WrappedSelectize, async = false) => {
       }
 
       return Object.keys(option).reduce((obj, nextKey) => {
-
-        if (nextKey === 'value' || nextKey === 'label') {
+        if (nextKey === 'value' || nextKey === 'label' || nextKey === 'isDisabled') {
           return obj
         }
 
         obj[nextKey] = option[nextKey]
 
         return obj
-
       }, {})
     }
 
@@ -321,44 +320,6 @@ const createSelectize = (WrappedSelectize, async = false) => {
 
     }
 
-    // getLoadUrl = () => {
-    //   const { dataSource, loadUrl } = this.props
-    //
-    //   if (loadUrl) {
-    //     return loadUrl
-    //   }
-    //
-    //   let url = dataSource.url
-    //
-    //   // let url = this.replacePlaceholderWithValue(dataSource.url)
-    //
-    //   if (dataSource.queryParams) {
-    //     const queryStr = Object.keys(dataSource.queryParams).reduce((queryStr, paramName, i) => {
-    //       if (i > 0) {
-    //         queryStr += '&'
-    //       }
-    //
-    //       let paramValueOrFieldNamePlaceholder = dataSource.queryParams[paramName]
-    //       let paramValue
-    //
-    //       if (paramValueOrFieldNamePlaceholder.startsWith('$')) {
-    //         paramValue = this.props.resolveToFormValue(paramValueOrFieldNamePlaceholder)
-    //       } else {
-    //         paramValue = paramValueOrFieldNamePlaceholder
-    //       }
-    //
-    //       queryStr += `${paramName}=${paramValue}`
-    //       return queryStr
-    //     }, '')
-    //
-    //     url += `?${queryStr}`
-    //   }
-    //
-    //   // console.log('Complete URL: ', url);
-    //
-    //   return url
-    // }
-
     replacePlaceholderWithValue = (placeholderOrValue) => {
       // console.log('PLACEHOLDERORVALUE', placeholderOrValue)
       if (typeof placeholderOrValue !== 'string') {
@@ -409,18 +370,33 @@ const createSelectize = (WrappedSelectize, async = false) => {
       }
     }
 
+    renderOptionLabel = () => {
+      if (this.props.includeValueAsSubLabel || this.props.sublabelProp) {
+        return this.createCustomOptionLabel
+      }
+      // (this.props.includeValueAsSubLabel || this.props.sublabelProp) ? this.createCustomOptionLabel : null
+    }
+
     createCustomOptionLabel = (option, { context }) => {
+      const { disabledOptionAlert, includeValueAsSubLabel } = this.props
+
       if (context === 'menu') {
         return (
           <div key={option.value}>
             <div>{option.label}</div>
             <div className="text-muted">
-              {this.props.includeValueAsSubLabel ?
+              {includeValueAsSubLabel ?
                 <small>{option.value}</small>
                 :
                 <small>{option.sublabel}</small>
               }
             </div>
+            {disabledOptionAlert &&
+              <div className={`text-${disabledOptionAlert.color}`}>
+                <span className={`fas fa-${disabledOptionAlert.icon || 'exclamation-triangle'} mr-1`} />
+                {disabledOptionAlert.text}
+              </div>
+            }
           </div>
         )
       } else {
@@ -506,23 +482,6 @@ const createSelectize = (WrappedSelectize, async = false) => {
       }
     }
 
-    shouldRefresh = () => {
-
-      const nextQueryParams = this.props.getNextQueryParams()
-      const prevQueryParams = JSON.parse(localStorage.getItem(this.props.storageId))
-
-      if (!prevQueryParams) {
-        return true
-      }
-
-      if (prevQueryParams && JSON.stringify(prevQueryParams) == JSON.stringify(nextQueryParams)) {
-        return false
-      }
-
-      return true
-
-    }
-
     render() {
       return (
         <WrappedSelectize
@@ -536,7 +495,7 @@ const createSelectize = (WrappedSelectize, async = false) => {
           key={new Date().getTime() + Math.random()}
           value={this.convertObjectToValue()}
           noOptionsMessage={this.getNoOptionsMessage}
-          formatOptionLabel={(this.props.includeValueAsSubLabel || this.props.sublabelProp) ? this.createCustomOptionLabel : null}
+          formatOptionLabel={this.renderOptionLabel}
           onChange={this.handleChange}
           onInputChange={this.props.handleSearchChange}
           styles={this.getStyles()}
