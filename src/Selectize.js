@@ -4,6 +4,7 @@ import createFieldComponent from './createFieldComponent'
 import createSelectize from './createSelectize'
 
 const Selectize = createFieldComponent(createSelectize(Select))
+// const Selectize = Select;
 
 Selectize.propTypes = {
   field: object.isRequired,

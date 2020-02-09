@@ -1,7 +1,14 @@
 import React, { PureComponent } from 'react'
 import { components } from 'react-select'
 import { get, set } from 'lodash'
-import InfiniteScroll from 'react-infinite-scroller'
+
+
+const Control = (props) => (
+  <components.Control
+    {...props}
+    className="form-control p-0"
+  />
+)
 
 /* eslint-disable react/prop-types */
 const createSelectize = (WrappedSelectize, async = false) => {
@@ -284,8 +291,7 @@ const createSelectize = (WrappedSelectize, async = false) => {
 
     getTypeSpecificProps = () => {
       if (async) {
-        // return this.getAsyncProps()
-        return {}
+        return this.getAsyncProps()
       } else {
         return this.getSyncProps()
       }
@@ -294,10 +300,14 @@ const createSelectize = (WrappedSelectize, async = false) => {
     getAsyncProps = () => {
       const asyncProps = {}
 
-      if (this.props.loadOptions) {
-        asyncProps.loadOptions = this.props.loadOptions
-      } else {
-        asyncProps.loadOptions = this.loadOptionsFromUrl
+      // if (this.props.loadOptions) {
+      //   asyncProps.loadOptions = this.props.loadOptions
+      // } else {
+      //   asyncProps.loadOptions = this.loadOptionsFromUrl
+      // }
+      asyncProps.loadOptions = (value) => {
+        return this.props.loadOptions(value)
+          .then(items => items.map(this.createOption))
       }
 
       return asyncProps
@@ -310,6 +320,10 @@ const createSelectize = (WrappedSelectize, async = false) => {
     }
 
     getNoOptionsMessage = () => {
+      if (this.props.loading) {
+        return this.props.loadingMessage || 'Loading...'
+      }
+
       if (this.props.noOptionsMessage && this.props.noOptionsMessage.type === 'html') {
         return (
           <div
@@ -325,12 +339,56 @@ const createSelectize = (WrappedSelectize, async = false) => {
       return 'No options'
     }
 
-    renderControl = (props) => (
-      <components.Control
-        {...props}
-        className="form-control p-0"
-      />
-    )
+    renderMenuList = (innerProps) => {
+      if (!this.props.pagination) {
+        return <components.MenuList {...innerProps} />
+      }
+
+      return (
+        <components.MenuList
+          {...innerProps}
+        >
+          {innerProps.children}
+          {this.renderLoadMoreButton()}
+        </components.MenuList>
+      )
+    }
+
+    renderLoadMoreButton = () => {
+      if (this.props.pagination.last || !this.props.options.length) {
+        return null
+      }
+
+      return (
+        <div
+          style={{ margin: '0.25rem' }}
+        >
+          <button
+            type="button"
+            className="w-100 btn btn-light text-primary"
+            style={{ height: '70px', fontSize: '1rem' }}
+            disabled={this.props.loading}
+            onClick={() => {
+              if (this.props.loading) {
+                return
+              }
+
+              this.props.loadMoreOptions()
+            }}
+          >
+            {this.props.loading ?
+              <span>
+                {this.props.loadingMoreMessage || 'Loading more results...'}
+              </span>
+              :
+              <span>
+                {this.props.loadMoreMessage || 'Load more results'}
+              </span>
+            }
+          </button>
+        </div>
+      )
+    }
 
     getStyles = () => {
       const theme = this.props.viewTheme;
@@ -356,26 +414,24 @@ const createSelectize = (WrappedSelectize, async = false) => {
         }),
       }
     }
+
     render() {
       return (
         <WrappedSelectize
           {...this.props}
           {...this.getTypeSpecificProps()}
-          loadOptions={(value) => {
-              return this.props.loadOptions(value)
-                .then(items => items.map(this.createOption))
-          }}
           isDisabled={this.props.disabled || false}
-          key={new Date().getTime() + Math.random()}
           value={this.convertObjectToValue()}
           noOptionsMessage={this.getNoOptionsMessage}
           onChange={this.handleChange}
-          onInputChange={this.props.handleSearchChange}
           styles={this.getStyles()}
           components={{
-            Control: this.renderControl,
+            Control,
+            MenuList: this.renderMenuList,
             Option: this.renderOption,
           }}
+          {...this.props.handleSearchChange ?
+            { onInputChange: this.props.handleSearchChange } : null}
         />
       )
     }
