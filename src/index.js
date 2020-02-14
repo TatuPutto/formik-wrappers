@@ -1,6 +1,7 @@
 export { default as AsyncSelectize } from './AsyncSelectize'
 export { default as CheckboxButton } from './CheckboxButton'
 export { default as CheckboxButtonGroup } from './CheckboxButtonGroup'
+export { default as ButtonGroup } from './RadioButtonGroup'
 // export { default as Dropzone } from 'formik-dropzone'
 export { default as FieldArray } from './FieldArray'
 export { default as RadioButton } from './RadioButton'

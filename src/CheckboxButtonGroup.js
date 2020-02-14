@@ -4,7 +4,7 @@ import createFieldComponent from './createFieldComponent'
 
 const CheckboxButtonGroup = (props) => {
   return (
-    <div className={this.props.vertical ? "btn-group-vertical" : "btn-group"}>
+    <div className={props.vertical ? "btn-group-vertical" : "btn-group"}>
       {props.children}
     </div>
   )

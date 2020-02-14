@@ -90,14 +90,25 @@ const createSelectize = (WrappedSelectize, async = false) => {
 
       if (includedProps) {
         includedProps.forEach((propNameOrConfig) => {
+          if (this.props.field.name.includes('foreman')) {
+            // console.log('option', option);
+            console.log('includedProps', propNameOrConfig);
 
+          }
           if (typeof propNameOrConfig === 'object') {
-            option[propNameOrConfig.as] = get(baseValue, propNameOrConfig.path)
+            set(option, propNameOrConfig.as, get(baseValue, propNameOrConfig.path))
+            // option[propNameOrConfig.as] = get(baseValue, propNameOrConfig.path)
           } else {
-            option[propNameOrConfig] = get(baseValue, propNameOrConfig)
+            set(option, propNameOrConfig, get(baseValue, propNameOrConfig))
+            // option[propNameOrConfig] = get(baseValue, propNameOrConfig)
           }
 
         })
+      }
+
+      if (this.props.field.name.includes('foreman')) {
+        console.log('option', option);
+
       }
 
       return option

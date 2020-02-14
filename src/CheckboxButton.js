@@ -1,13 +1,13 @@
 import React from 'react'
 import { bool, object, oneOfType, number, string } from 'prop-types'
 import classnames from 'classnames'
-import createFieldComponent from './createFieldComponent'
 
 const CheckboxButton = (props) => {
   const {
-    field: { name, value, onChange, onBlur },
+    field: { name, value, onBlur },
     id,
     children,
+    class: className,
     disabled,
     disableMargin,
     fullWidth,
@@ -28,6 +28,7 @@ const CheckboxButton = (props) => {
     'disabled': disabled,
     [`text-${align}`]: align,
     'w-100': fullWidth,
+    [className]: className,
   })
 
   return (
@@ -44,7 +45,7 @@ const CheckboxButton = (props) => {
             if (props.hasOwnProperty('onChange')) {
               props.onChange(!value)
             }
-            
+
             props.form.setFieldValue(name, !value, true)
           }}
         />

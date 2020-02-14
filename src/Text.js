@@ -24,6 +24,40 @@ class Text extends PureComponent {
     // }
   }
 
+  renderInputWithAddon = () => {
+    return (
+      <div className="input-group">
+        {!this.props.addon.position || this.props.addon.position === 'start' &&
+          this.renderAddon()
+        }
+        {this.renderInput()}
+        {this.props.addon.position && this.props.addon.position === 'end' &&
+          this.renderAddon()
+        }
+      </div>
+    )
+  }
+
+  renderAddon = () => {
+    const addonWrapperClassName = classnames({
+      'input-group-prepend': !this.props.addon.position || this.props.addon.position === 'start',
+      'input-group-append': this.props.addon.position && this.props.addon.position === 'end',
+    })
+
+    return (
+      <div className={addonWrapperClassName}>
+        <span className="input-group-text">
+          {this.props.addon.icon &&
+            <span className={`fas fa-${this.props.addon.icon}`} />
+          }
+          {this.props.addon.icon &&
+            <span>{this.props.addon.text}</span>
+          }
+        </span>
+      </div>
+    )
+  }
+
   renderInput = () => {
     const { field, placeholder, autoComplete, disabled, style } = this.props
     const inputClassName = this.getInputClassName()
@@ -46,7 +80,11 @@ class Text extends PureComponent {
   render() {
     return (
       <div>
-        {this.renderInput()}
+        {this.props.addon ?
+          this.renderInputWithAddon()
+          :
+          this.renderInput()
+        }
       </div>
     )
   }
@@ -67,6 +105,7 @@ Text.defaultProps = {
 Text.propTypes = {
   form: object.isRequired,
   field: object.isRequired,
+  addon: string,
   autoComplete: bool,
   capitalize: bool,
   className: string,

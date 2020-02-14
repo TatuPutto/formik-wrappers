@@ -33,6 +33,10 @@ class Question extends PureComponent {
 
     const clarificationConfig = this.props.clarification
 
+    if (clarificationConfig.hasOwnProperty('required')) {
+      return true
+    }
+
     if (clarificationConfig.hasOwnProperty('requiredWhenValueIs')) {
       return clarificationConfig.requiredWhenValueIs === this.getAnswer()
     }
