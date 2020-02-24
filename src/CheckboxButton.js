@@ -6,6 +6,7 @@ const CheckboxButton = (props) => {
   const {
     field: { name, value, onBlur },
     id,
+    interactive,
     children,
     class: className,
     disabled,
@@ -13,6 +14,7 @@ const CheckboxButton = (props) => {
     fullWidth,
     multiline,
     size,
+    strikethrough,
     text,
     align,
     transparent,
@@ -20,7 +22,8 @@ const CheckboxButton = (props) => {
   } = props
 
   const checked = value === true
-  const labelClassName = classnames('clickable', {
+  const labelClassName = classnames({
+    'clickable': interactive && !disabled,
     'btn btn-outline-secondary': !transparent,
     'btn-multiline text-left': multiline,
     [`btn-${size}`]: size,
@@ -28,27 +31,37 @@ const CheckboxButton = (props) => {
     'disabled': disabled,
     [`text-${align}`]: align,
     'w-100': fullWidth,
+    'text-del': strikethrough,
     [className]: className,
   })
 
   return (
-      <label hltmfor={id} className={labelClassName}>
-        <input
-          type="checkbox"
-          name={name}
-          id={id}
-          checked={checked}
-          disabled={disabled}
-          tabIndex={tabIndex}
-          onBlur={onBlur}
-          onChange={() => {
-            if (props.hasOwnProperty('onChange')) {
-              props.onChange(!value)
-            }
+      <label
+        hltmfor={id}
+        className={labelClassName}
+      >
+        {interactive ?
+          <input
+            type="checkbox"
+            name={name}
+            id={id}
+            checked={checked}
+            disabled={disabled}
+            tabIndex={tabIndex}
+            onBlur={onBlur}
+            onChange={() => {
+              if (props.hasOwnProperty('onChange')) {
+                props.onChange(!value)
+              }
 
-            props.form.setFieldValue(name, !value, true)
-          }}
-        />
+              props.form.setFieldValue(name, !value, true)
+            }}
+          />
+          : checked ?
+            <span className="far fa-check-square" />
+            :
+            <span className="far fa-square" />
+        }
         {!disableMargin && <span className="mr-1" />}
         {children && children}
         {text && text}
@@ -59,9 +72,11 @@ const CheckboxButton = (props) => {
 
 CheckboxButton.defaultProps = {
   id: null,
+  interactive: true,
   disabled: false,
   disableMargin: false,
   multiline: false,
+  strikethrough: false,
   tabIndex: null,
   transparent: false
 }
@@ -77,6 +92,7 @@ CheckboxButton.propTypes = {
   disableMargin: bool,
   multiline: bool,
   size: string,
+  strikethrough: bool,
   tabIndex: number,
   transparent: bool
 }

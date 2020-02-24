@@ -86,12 +86,31 @@ class Question extends PureComponent {
       const wrapperClassName = classnames('wrapper', { 'py-2': this.props.depth === 0 })
       const nestedWrapperClassName = classnames('wrapper', { 'py-2': this.props.depth > 0 })
 
+      const wrapperStyle = this.props.depth ?
+        { borderLeft: '3px solid #c6c6c6' } :
+        { borderBottom: '1px solid rgb(198, 198, 198)' }
+
+      let nestedWrapperStyle = {}
+
+      if (this.props.depth > 0) {
+        nestedWrapperStyle.marginLeft = `${this.props.depth}rem`
+
+        if (this.props.isLast) {
+          nestedWrapperStyle.borderBottom = '1px solid rgb(198, 198, 198)'
+        }
+      }
+
+      // nestedWrapperStyle style={this.props.depth > 0 ? { marginLeft: `${this.props.depth}rem`, ...this.props.isLast ? null : { borderBottom: '1px solid rgb(198, 198, 198)' } } : null}
+
       return (
-        <div className={wrapperClassName}
-          style={this.props.depth > 0 ? { borderLeft: '3px solid #c6c6c6' } :
-                                        { borderBottom: '1px solid rgb(198, 198, 198)' }}
+        <div
+          className={wrapperClassName}
+          style={wrapperStyle}
         >
-          <div className={nestedWrapperClassName} style={this.props.depth > 0 ? { marginLeft: `${this.props.depth}rem`, ...this.props.isLast ? null : { borderBottom: '1px solid rgb(198, 198, 198)' } } : null}>
+          <div
+            className={nestedWrapperClassName}
+            style={nestedWrapperStyle}
+          >
             <div className="py-1 font-weight-bold">
               {labelEl}
             </div>
