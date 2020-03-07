@@ -397,9 +397,17 @@ const createSelectize = (WrappedSelectize, async = false) => {
       return {
         control: (base, state) => ({
           ...base,
-          borderColor: theme.formControl.borderColor,
+          ...theme.selectize.control,
           ...state.isFocused ? { ...theme.formControl.focus } : {},
           ...state.isDisabled ? { ...theme.formControl.disabled } : { backgroundColor: base.backgroundColor },
+        }),
+        valueContainer: (base) => ({
+          ...base,
+          ...theme.selectize.valueContainer,
+        }),
+        indicatorsContainer: (base) => ({
+          ...base,
+          ...theme.selectize.indicatorsContainer, 
         }),
         menu: (base) => ({
           ...base,
