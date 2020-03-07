@@ -38,6 +38,10 @@ class Question extends PureComponent {
     }
 
     if (clarificationConfig.hasOwnProperty('requiredWhenValueIs')) {
+      if (Array.isArray(clarificationConfig.requiredWhenValueIs)) {
+        return clarificationConfig.requiredWhenValueIs.some((answer) => answer === this.getAnswer())
+      }
+
       return clarificationConfig.requiredWhenValueIs === this.getAnswer()
     }
   }
@@ -74,12 +78,24 @@ class Question extends PureComponent {
 
     const labelEl = (
       <div style={labelWrapperStyles}>
-        {this.props.label}
+        {this.props.isSection ?
+          <i>{this.props.label}</i>
+          :
+          <span>{this.props.label}</span>
+        }
         {this.shouldDisplayClarification() && this.renderClarification()}
       </div>
     )
 
-    const optionEls = this.props.renderOptions(`${this.props.field.name}.value`)
+    let optionEls = []
+
+    if (!this.props.isSection || this.props.answerable) {
+      optionEls = this.props.renderOptions(`${this.props.field.name}.value`)
+    } else {
+      for (let i = 0; i < this.props.options.length; i++) {
+        optionEls.push(<td /> )
+      }
+    }
 
     if (this.props.condenseLayout) {
 
