@@ -39,16 +39,17 @@ class Text extends PureComponent {
   }
 
   renderAddon = () => {
-    const addonWrapperClassName = classnames({
-      'input-group-prepend': !this.props.addon.position || this.props.addon.position === 'start',
-      'input-group-append': this.props.addon.position && this.props.addon.position === 'end',
-    })
+    // const addonWrapperClassName = classnames({
+    //   'input-group-prepend': !this.props.addon.position || this.props.addon.position === 'start',
+    //   'input-group-append': this.props.addon.position && this.props.addon.position === 'end',
+    // })
 
+    // {/*<span className={`fas fa-${this.props.addon.icon}`} />*/}
     return (
-      <div className={addonWrapperClassName}>
+      <div className="input-group-addon">
         <span className="input-group-text">
           {this.props.addon.icon &&
-            <span className={`fas fa-${this.props.addon.icon}`} />
+            <span className={`glyphicons glyphicons-${this.props.addon.icon}`} />
           }
           {this.props.addon.icon &&
             <span>{this.props.addon.text}</span>

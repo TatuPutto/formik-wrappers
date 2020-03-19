@@ -120,7 +120,11 @@ class Form extends PureComponent {
     }
 
     return (
-      <div>
+      <div
+        className={classnames('multiple-choice', {
+          'align-options-left': this.props.alignOptionsLeft,
+        })}
+      >
         <table
           className={classnames('table', {
             'table-striped': this.props.striped,

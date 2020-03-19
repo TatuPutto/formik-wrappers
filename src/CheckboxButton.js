@@ -35,18 +35,17 @@ const CheckboxButton = (props) => {
     [className]: className,
   })
 
-  return (
-      <label
-        hltmfor={id}
-        className={labelClassName}
-      >
-        {interactive ?
+  // <span className="far fa-check-square" />
+  // <span className="far fa-square" />
+
+  /*
+  interactive ?
           <input
             type="checkbox"
             name={name}
             id={id}
             checked={checked}
-            disabled={disabled}
+            disabled={disabled || interactive}
             tabIndex={tabIndex}
             onBlur={onBlur}
             onChange={() => {
@@ -58,15 +57,43 @@ const CheckboxButton = (props) => {
             }}
           />
           : checked ?
-            <span className="far fa-check-square" />
+            <span 
+              className="glyphicons glyphicons-check" 
+              style={{ fontSize: '110%', marginTop: '-6px' }}
+            />
             :
-            <span className="far fa-square" />
-        }
-        {!disableMargin && <span className="mr-1" />}
-        {children && children}
-        {text && text}
-      </label>
+            <span
+              className="glyphicons glyphicons-unchecked"
+              style={{ fontSize: '110%', marginTop: '-6px' }}
+            />
+        
+  */
 
+  return (
+    <label
+      hltmfor={id}
+      className={labelClassName}
+    >
+      <input
+        type="checkbox"
+        name={name}
+        id={id}
+        checked={checked}
+        disabled={disabled}
+        tabIndex={tabIndex}
+        onBlur={onBlur}
+        onChange={() => {
+          if (props.hasOwnProperty('onChange')) {
+            props.onChange(!value)
+          }
+
+          props.form.setFieldValue(name, !value, true)
+        }}
+      />
+      {!disableMargin && ' '}
+      {children && children}
+      {text && text}
+    </label>
   )
 }
 
