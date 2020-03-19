@@ -6,7 +6,7 @@ import { get, set } from 'lodash'
 const Control = (props) => (
   <components.Control
     {...props}
-    className="form-control p-0"
+    
   />
 )
 
@@ -66,8 +66,9 @@ const createSelectize = (WrappedSelectize, async = false) => {
         option = {
           value: baseValue,
           label: baseValue,
-          isDisabled: this.shouldDisable(baseValue)
         }
+
+        option = this.setDisabledStatus(option, baseValue)
 
         return option
       }
@@ -86,38 +87,57 @@ const createSelectize = (WrappedSelectize, async = false) => {
         }
       }
 
-      set(option, 'isDisabled', this.shouldDisable(baseValue))
+      option = this.setDisabledStatus(option, baseValue)
 
       if (includedProps) {
         includedProps.forEach((propNameOrConfig) => {
           if (typeof propNameOrConfig === 'object') {
             set(option, propNameOrConfig.as, get(baseValue, propNameOrConfig.path))
-            // option[propNameOrConfig.as] = get(baseValue, propNameOrConfig.path)
           } else {
             set(option, propNameOrConfig, get(baseValue, propNameOrConfig))
-            // option[propNameOrConfig] = get(baseValue, propNameOrConfig)
           }
-
         })
       }
-
       return option
     }
 
-    shouldDisable = (option) => {
+    setDisabledStatus = (option, baseValue) => {
       const { disableOptionWhen } = this.props
 
       if (!disableOptionWhen) {
-        return false
+        return option
+      }
+
+      if (typeof disableOptionWhen === 'string') {
+        return {
+          ...option,
+          isDisabled: this.props.evaluate2(disableOptionWhen, baseValue), 
+        }
       }
 
       if (Array.isArray(disableOptionWhen)) {
-        return disableOptionWhen.some((condition) => {
-          return get(option, condition.path) === condition.is
-        })
+        const alerts = disableOptionWhen
+          .filter((entry) => {
+            console.log('evaling path', entry);
+            if (entry.hasOwnProperty('path')) {
+              
+              return get(baseValue, entry.path) === entry.is
+            }
+
+            return this.props.evaluate2(entry.condition, baseValue);
+          })
+          .map((entry) => entry.alert)
+
+        return {
+          ...option,
+          isDisabled: Boolean(alerts.length),
+          alerts,
+        }
       }
 
-      return get(option, disableOptionWhen.path) === disableOptionWhen.is
+      return option
+
+      // return get(option, disableOptionWhen.path) === disableOptionWhen.is
     }
 
     resolveFromSourceProps = (object, sourceProps) => {
@@ -156,7 +176,12 @@ const createSelectize = (WrappedSelectize, async = false) => {
       }
 
       return Object.keys(option).reduce((obj, nextKey) => {
-        if (nextKey === 'value' || nextKey === 'label' || nextKey === 'isDisabled') {
+        if (
+          nextKey === 'value' ||
+          nextKey === 'label' || 
+          nextKey === 'isDisabled',
+          nextKey === 'alerts'
+        ) {
           return obj
         }
 
@@ -249,7 +274,8 @@ const createSelectize = (WrappedSelectize, async = false) => {
       if (
         this.props.includeValueAsSubLabel ||
         this.props.sublabelProp ||
-        this.props.disabledOptionAlert
+        this.props.disabledOptionAlert ||
+        this.props.disableOptionWhen
       ) {
         return (
           <components.Option {...props}>
@@ -278,13 +304,33 @@ const createSelectize = (WrappedSelectize, async = false) => {
               <small>{option.sublabel}</small>
             }
           </div>
-          {disabledOptionAlert && option.isDisabled &&
-            <div>
-              <small className={`text-${disabledOptionAlert.color}`}>
-                <span className={`fas fa-${disabledOptionAlert.icon || 'exclamation-triangle'} mr-1`} />
-                {disabledOptionAlert.text}
-              </small>
-            </div>
+          {option.isDisabled &&
+            <div className="alert alert-warning pt-1 pb-1 pl-2 pr-2 mt-1 mb-0">
+              {disabledOptionAlert ?
+                <small className={`text-${disabledOptionAlert.color}`}>
+                  {/*<span className={`fas fa-${disabledOptionAlert.icon || 'exclamation-triangle'} mr-1`} />*/}
+                  <span className={`glyphicons glyphicons-${disabledOptionAlert.icon || 'warning-sign'} mr-1`} />
+                  {disabledOptionAlert.text}
+                </small>
+                : option.alerts.length > 1 ?
+                  <small>
+                    <ul style={{
+                      paddingInlineStart: '1.5rem',
+                      marginBottom: 0,
+                    }}>
+                      {option.alerts.map((alert, i) => (
+                        <li key={i}>
+                          {alert}
+                        </li>
+                      ))}
+                    </ul> 
+                  </small>
+                  :
+                    <small>
+                      {option.alerts[0]}
+                    </small>
+              }
+           </div>
           }
         </div>
       )
