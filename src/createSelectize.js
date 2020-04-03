@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react'
 import { components } from 'react-select'
-import { get, set } from 'lodash'
+import { get, set, has } from 'lodash'
 
 
 const Control = (props) => (
@@ -92,6 +92,16 @@ const createSelectize = (WrappedSelectize, async = false) => {
       if (includedProps) {
         includedProps.forEach((propNameOrConfig) => {
           if (typeof propNameOrConfig === 'object') {
+            if (has(propNameOrConfig, 'evaluate')) {
+              return set(option, propNameOrConfig.as, 
+                this.props.evaluate2(propNameOrConfig.evaluate, baseValue));
+            }
+
+            if (has(propNameOrConfig, 'value')) {
+              return set(option, propNameOrConfig.as,
+                propNameOrConfig.value)
+            }
+
             set(option, propNameOrConfig.as, get(baseValue, propNameOrConfig.path))
           } else {
             set(option, propNameOrConfig, get(baseValue, propNameOrConfig))
