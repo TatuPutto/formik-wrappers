@@ -7,7 +7,8 @@ import createFieldComponent from './createFieldComponent'
 const RadioButton = (props) => {
   const {
     form: { setFieldValue },
-    field: { name, value, onChange, onBlur },
+    field: { name, value, onBlur },
+    onChange,
     children,
     text,
     align,
@@ -52,10 +53,13 @@ const RadioButton = (props) => {
         onChange={(e) => {
           if (e.target.value === 'true') {
             setFieldValue(name, true)
+            onChange && onChange(true)
           } else if (e.target.value === 'false') {
             setFieldValue(name, false)
+            onChange && onChange(false)
           } else {
-            onChange(e)
+            props.field.onChange(e)
+            onChange && onChange(e)
           }
         }}
         disabled={disabled}

@@ -20,8 +20,11 @@ class Text extends PureComponent {
     // if (this.props.onChange) {
     //   return this.props.onChange(e, this.props.field.onChange)
     // } else {
-      return this.props.form.setFieldValue(this.props.field.name, e.target.value, true)
+    //  return this.props.form.setFieldValue(this.props.field.name, e.target.value, true)
     // }
+    this.props.onChange && this.props.onChange(e.target.value)
+
+    return this.props.form.setFieldValue(this.props.field.name, e.target.value, true)
   }
 
   renderInputWithAddon = () => {
