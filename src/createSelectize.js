@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react'
 import { components } from 'react-select'
-import { get, set, has, isEmpty } from 'lodash'
+import { get, set, has, isEmpty, isString } from 'lodash'
 
 
 const Control = (props) => (
@@ -206,6 +206,13 @@ const createSelectize = (WrappedSelectize, async = false) => {
         convertFromString,
         isMulti
       } = this.props
+
+      if (isString(value) && !convertFromString) {
+        return {
+          value: value,
+          label: value,
+        }
+      } 
 
       if (
         value &&
