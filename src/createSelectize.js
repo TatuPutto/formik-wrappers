@@ -395,6 +395,12 @@ const createSelectize = (WrappedSelectize, async = false) => {
             }}
           />
         )
+      } else if (this.props.minSearchLength) {
+        if (this.props.minSearchLengthMessage) {
+          return this.props.minSearchLengthMessage.replace('$', this.props.minSearchLength - this.props.inputValue.length)
+        } else {
+          return `Type ${this.props.minSearchLength - this.props.inputValue.length} more characters to start search.`
+        }
       } else if (this.props.noOptionsMessage) {
         return this.props.resolveToFormValue(this.props.noOptionsMessage)
       }
