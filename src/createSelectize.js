@@ -383,26 +383,36 @@ const createSelectize = (WrappedSelectize, async = false) => {
     }
 
     getNoOptionsMessage = () => {
-      if (this.props.loading) {
-        return this.props.loadingMessage || 'Loading...'
+      const {
+        loading,
+        loadingMessage,
+        noOptionsMessage,
+        minSearchLength,
+        minSearchLengthMessage,
+        inputValue,
+        resolveToFormValue,
+      } = this.props
+
+      if (loading) {
+        return loadingMessage || 'Loading...'
       }
 
-      if (this.props.noOptionsMessage && this.props.noOptionsMessage.type === 'html') {
+      if (noOptionsMessage && noOptionsMessage.type === 'html') {
         return (
           <div
             dangerouslySetInnerHTML={{ // eslint-disable-line
-              __html: this.props.resolveToFormValue(this.props.noOptionsMessage.value)
+              __html: resolveToFormValue(noOptionsMessage.value)
             }}
           />
         )
-      } else if (this.props.minSearchLength) {
-        if (this.props.minSearchLengthMessage) {
-          return this.props.minSearchLengthMessage.replace('$', this.props.minSearchLength - this.props.inputValue.length)
+      } else if (minSearchLength && minSearchLength > (inputValue ? inputValue.length : 0)) {
+        if (minSearchLengthMessage) {
+          return minSearchLengthMessage.replace('$', minSearchLength - inputValue.length)
         } else {
-          return `Type ${this.props.minSearchLength - this.props.inputValue.length} more characters to start search.`
+          return `Type ${minSearchLength - inputValue.length} more characters to start the search.`
         }
-      } else if (this.props.noOptionsMessage) {
-        return this.props.resolveToFormValue(this.props.noOptionsMessage)
+      } else if (noOptionsMessage) {
+        return resolveToFormValue(noOptionsMessage)
       }
 
       return 'No options'
