@@ -477,7 +477,11 @@ const createSelectize = (WrappedSelectize, async = false) => {
     }
 
     getStyles = () => {
-      const theme = this.props.viewTheme;
+      const { styles, viewTheme: theme } = this.props;
+
+      if (styles) {
+        return styles;
+      }
 
       return {
         control: (base, state) => ({
