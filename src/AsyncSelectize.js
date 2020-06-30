@@ -21,7 +21,7 @@ AsyncSelectize.propTypes = {
 AsyncSelectize.defaultProps = {
   backspaceRemovesValue: false,
   convert: false,
-  defaultOptions: false,
+  defaultOptions: true,
   isClearable: true,
   isMulti: false
 }
