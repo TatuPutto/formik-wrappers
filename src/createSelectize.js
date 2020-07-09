@@ -56,6 +56,7 @@ const createSelectize = (WrappedSelectize, async = false) => {
       const {
         convert,
         convertFromString,
+        includeAllProps,
         includedProps,
         sublabelProp,
       } = this.props
@@ -89,12 +90,15 @@ const createSelectize = (WrappedSelectize, async = false) => {
 
       option = this.setDisabledStatus(option, baseValue)
 
-      if (includedProps) {
-        includedProps.forEach((propNameOrConfig) => {
+      if (includedProps || includeAllProps) {
+        const propsToInclude = includeAllProps ?
+           Object.keys(baseValue) : includedProps
+
+        propsToInclude.forEach((propNameOrConfig) => {
           if (typeof propNameOrConfig === 'object') {
             if (has(propNameOrConfig, 'evaluate')) {
               return set(option, propNameOrConfig.as, 
-                this.props.evaluate2(propNameOrConfig.evaluate, baseValue));
+                this.props.evaluate2(propNameOrConfig.evaluate, baseValue))
             }
 
             if (has(propNameOrConfig, 'value')) {
@@ -378,15 +382,23 @@ const createSelectize = (WrappedSelectize, async = false) => {
       asyncProps.loadOptions = (value) => {
         return this.props.loadOptions(value)
           .then(items => items.map(this.createOption))
+          .then(options => {
+            return this.props.formatOptions ?
+              this.props.formatOptions(options) : options
+          })
       }
 
       return asyncProps
     }
 
     getSyncProps = () => {
-      return {
-        options: this.convertArrayToOptions()
+      let options = this.convertArrayToOptions()
+      
+      if (this.props.formatOptions) {
+        options = this.props.formatOptions(options)
       }
+
+      return { options }
     }
 
     getNoOptionsMessage = () => {
@@ -518,15 +530,23 @@ const createSelectize = (WrappedSelectize, async = false) => {
         <WrappedSelectize
           {...this.props}
           {...this.getTypeSpecificProps()}
+          ref={this.props.selectizeRef}
           isDisabled={this.props.disabled || false}
           value={this.convertObjectToValue()}
           noOptionsMessage={this.getNoOptionsMessage}
           onChange={this.handleChange}
           styles={this.getStyles()}
           components={{
-            Control,
-            MenuList: this.renderMenuList,
-            Option: this.renderOption,
+            ...get(this.props, 'components'),
+            ...has(this.props, 'components.Control') ?
+              { Control: get(this.props, 'components.Control') } :
+              { Control: Control },
+            ...has(this.props, 'components.MenuList') ?
+              { MenuList: get(this.props, 'components.MenuList') } :
+              { MenuList: this.renderMenuList },
+            ...has(this.props, 'components.Option') ?
+              { Option: get(this.props, 'components.Option') } :
+              { Option: this.renderOption },
           }}
           {...this.props.handleSearchChange ?
             { onInputChange: this.props.handleSearchChange } : null}
