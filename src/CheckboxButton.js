@@ -1,5 +1,5 @@
-import React from 'react'
-import { bool, object, oneOfType, number, string } from 'prop-types'
+import React, { Fragment } from 'react'
+import { bool, object, oneOfType, number, string, func } from 'prop-types'
 import classnames from 'classnames'
 
 const CheckboxButton = (props) => {
@@ -19,6 +19,7 @@ const CheckboxButton = (props) => {
     align,
     transparent,
     tabIndex,
+    label,
   } = props
 
   const checked = value === true
@@ -69,11 +70,8 @@ const CheckboxButton = (props) => {
         
   */
 
-  return (
-    <label
-      hltmfor={id}
-      className={labelClassName}
-    >
+  const labelContent = (
+    <Fragment>
       <input
         type="checkbox"
         name={name}
@@ -93,6 +91,26 @@ const CheckboxButton = (props) => {
       {!disableMargin && ' '}
       {children && children}
       {text && text}
+    </Fragment>
+  )
+
+  if (typeof label === 'function') {
+    const Label = label
+    return (
+      <Label
+        labelClassName={labelClassName}
+      >
+        {labelContent}
+      </Label>
+    )
+  }
+
+  return (
+    <label
+      hltmfor={id}
+      className={labelClassName}
+    >
+      {labelContent}
     </label>
   )
 }
@@ -121,7 +139,8 @@ CheckboxButton.propTypes = {
   size: string,
   strikethrough: bool,
   tabIndex: number,
-  transparent: bool
+  transparent: bool,
+  label: func,
 }
 
 export default CheckboxButton
