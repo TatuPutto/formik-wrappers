@@ -63,13 +63,20 @@ class Text extends PureComponent {
   }
 
   renderInput = () => {
-    const { field, placeholder, autoComplete, disabled, style } = this.props
+    const {
+      field,
+      type,
+      placeholder,
+      autoComplete,
+      disabled,
+      style
+    } = this.props
     const inputClassName = this.getInputClassName()
 
     return (
       <input
         {...field}
-        type="text"
+        type={type}
         style={style}
         className={inputClassName}
         placeholder={placeholder}
@@ -104,6 +111,7 @@ Text.defaultProps = {
   labelClassName: "upper-label",
   required: true,
   disabled: false,
+  type: "text",
 }
 
 Text.propTypes = {
@@ -120,6 +128,7 @@ Text.propTypes = {
   placeholder: string,
   renderLabel: func,
   required: bool,
+  type: string,
   uppercase: bool,
 }
 
