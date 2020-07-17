@@ -22,9 +22,20 @@ class Text extends PureComponent {
     // } else {
     //  return this.props.form.setFieldValue(this.props.field.name, e.target.value, true)
     // }
-    this.props.onChange && this.props.onChange(e.target.value)
 
-    return this.props.form.setFieldValue(this.props.field.name, e.target.value, true)
+    let value = e.target.value;
+
+    if (this.props.normalize) {
+      value = this.props.normalize(
+        value,
+        this.props.field.value,
+        this.props.form.values
+      )
+    }
+
+    this.props.onChange && this.props.onChange(value)
+
+    return this.props.form.setFieldValue(this.props.field.name, value, true)
   }
 
   renderInputWithAddon = () => {
@@ -54,7 +65,7 @@ class Text extends PureComponent {
           {this.props.addon.icon &&
             <span className={`glyphicons glyphicons-${this.props.addon.icon}`} />
           }
-          {this.props.addon.icon &&
+          {this.props.addon.text &&
             <span>{this.props.addon.text}</span>
           }
         </span>
@@ -81,6 +92,8 @@ class Text extends PureComponent {
         className={inputClassName}
         placeholder={placeholder}
         disabled={disabled}
+        min={this.props.min}
+        max={this.props.max}
         autoComplete={autoComplete ? 'on' : 'off'}
         value={field.value}
         onChange={this.handleChange}

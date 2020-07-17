@@ -79,6 +79,7 @@ const CheckboxButton = (props) => {
         checked={checked}
         disabled={disabled}
         tabIndex={tabIndex}
+        style={{ marginRight: text || children ? '4px' : 0 }}
         onBlur={onBlur}
         onChange={() => {
           if (props.hasOwnProperty('onChange')) {
