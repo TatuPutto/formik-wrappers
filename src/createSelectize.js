@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react'
 import { components } from 'react-select'
-import { get, set, has, isEmpty, isString } from 'lodash'
+import { get, set, has, isEmpty, isFunction, isString } from 'lodash'
 
 
 const Control = (props) => (
@@ -16,6 +16,7 @@ const createSelectize = (WrappedSelectize, async = false) => {
     createIdNamePair = (option) => {
       const {
         convert,
+        convertToValue,
         convertFromString,
         convertOutput
       } = this.props
@@ -48,18 +49,22 @@ const createSelectize = (WrappedSelectize, async = false) => {
           name: option.label
         }
       } else {
-        return this.resolveToSourceProps(option, convert)
+        return this.resolveToSourceProps(option, convertToValue ? convertToValue : convert)
       }
     }
 
     createOption = (baseValue) => {
       const {
         convert,
+        convertToOption,
         convertFromString,
         includeAllProps,
         includedProps,
         sublabelProp,
       } = this.props
+
+      let convertOpts = convertToOption ?
+        convertToOption : convert;
 
       let option
 
@@ -74,7 +79,7 @@ const createSelectize = (WrappedSelectize, async = false) => {
         return option
       }
 
-      if (typeof convert === 'boolean') {
+      if (typeof convertOpts === 'boolean') {
         option = {
           value: baseValue.id,
           label: baseValue.name,
@@ -82,8 +87,8 @@ const createSelectize = (WrappedSelectize, async = false) => {
         }
       } else {
         option = {
-          value: this.resolveFromSourceProps(baseValue, convert.valueSourceProp),
-          label: this.resolveFromSourceProps(baseValue, convert.labelSourceProp),
+          value: this.resolveFromSourceProps(baseValue, convertOpts.valueSourceProp),
+          label: this.resolveFromSourceProps(baseValue, convertOpts.labelSourceProp),
           ...sublabelProp ? { sublabel: baseValue[sublabelProp] } : null
         }
       }
@@ -153,8 +158,10 @@ const createSelectize = (WrappedSelectize, async = false) => {
     }
 
     resolveFromSourceProps = (object, sourceProps) => {
-      if (Array.isArray(sourceProps)) {
-        return sourceProps.map((sourceProp) => object[sourceProp]).join(' ')
+      if (isFunction(sourceProps)) {  
+        return sourceProps(object)
+      } else if (Array.isArray(sourceProps)) {
+        return sourceProps.map((sourceProp) => get(object, sourceProp)).join(' ')
       } else {
         return object[sourceProps]
       }
@@ -165,6 +172,10 @@ const createSelectize = (WrappedSelectize, async = false) => {
 
       if (Array.isArray(convert.valueSourceProp)) {
         convert.valueSourceProp.forEach((sourceProp, i) => {
+          if (has(option, sourceProp)) {
+            values[sourceProp] = get(option, sourceProp)
+            return
+          }
           values[sourceProp] = option.value.split(' ')[i]
         })
       } else {
@@ -173,6 +184,11 @@ const createSelectize = (WrappedSelectize, async = false) => {
 
       if (Array.isArray(convert.labelSourceProp)) {
         convert.labelSourceProp.forEach((sourceProp, i) => {
+          // values[sourceProp] = get(option, sourceProp)
+          if (has(option, sourceProp)) {
+            values[sourceProp] = get(option, sourceProp)
+            return
+          }
           values[sourceProp] = option.label.split(' ')[i]
         })
       } else {
@@ -430,8 +446,10 @@ const createSelectize = (WrappedSelectize, async = false) => {
         } else {
           return `Type ${minSearchLength - inputValue.length} more characters to start the search.`
         }
-      } else if (noOptionsMessage) {
+      } else if (noOptionsMessage && resolveToFormValue) {
         return resolveToFormValue(noOptionsMessage)
+      } else if (noOptionsMessage) {
+        return noOptionsMessage;
       }
 
       return 'No options'
