@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react'
 import { components } from 'react-select'
-import { get, set, has, isEmpty, isFunction, isString } from 'lodash'
+import { get, set, has, isEmpty, isFunction, isString, isPlainObject } from 'lodash'
 
 
 const Control = (props) => (
@@ -20,6 +20,9 @@ const createSelectize = (WrappedSelectize, async = false) => {
         convertFromString,
         convertOutput
       } = this.props
+
+      const convertOpts = convertToValue ?
+        convertToValue : convert;
 
       if (convertOutput) {
         const output = convertOutput.reduce((outputObj, propNameOrConfig) => {
@@ -43,28 +46,25 @@ const createSelectize = (WrappedSelectize, async = false) => {
         return option.value
       }
 
-      if (typeof convert === 'boolean') {
+      if (typeof convertOpts === 'boolean') {
         return {
           id: option.value,
           name: option.label
         }
       } else {
-        return this.resolveToSourceProps(option, convertToValue ? convertToValue : convert)
+        return this.resolveToSourceProps(option, convertOpts);
       }
     }
 
     createOption = (baseValue) => {
       const {
-        convert,
-        convertToOption,
         convertFromString,
         includeAllProps,
         includedProps,
         sublabelProp,
       } = this.props
 
-      let convertOpts = convertToOption ?
-        convertToOption : convert;
+      const convertOpts = this.getOptionConversionOptions();
 
       let option
 
@@ -184,7 +184,6 @@ const createSelectize = (WrappedSelectize, async = false) => {
 
       if (Array.isArray(convert.labelSourceProp)) {
         convert.labelSourceProp.forEach((sourceProp, i) => {
-          // values[sourceProp] = get(option, sourceProp)
           if (has(option, sourceProp)) {
             values[sourceProp] = get(option, sourceProp)
             return
@@ -203,29 +202,35 @@ const createSelectize = (WrappedSelectize, async = false) => {
         return option
       }
 
-      return Object.keys(option).reduce((obj, nextKey) => {
-        if (
-          nextKey === 'value' ||
-          nextKey === 'label' || 
-          nextKey === 'isDisabled' ||
-          nextKey === 'alerts'
-        ) {
+      const excludedProps = [
+        'value',
+        'label',
+        'isDisabled',
+        'alerts',
+      ]
+
+      return Object
+        .keys(option)
+        .reduce((obj, nextKey) => {
+          if (excludedProps.includes(nextKey)) {
+            return obj
+          }
+
+          obj[nextKey] = option[nextKey]
+
           return obj
-        }
-
-        obj[nextKey] = option[nextKey]
-
-        return obj
-      }, {})
+        }, {})
     }
 
+    // Conversion from form value to React-select compatible option.
     convertObjectToValue = () => {
       const {
         field: { value },
-        convert,
         convertFromString,
         isMulti
       } = this.props
+
+      const conversionOptions = this.getValueConversionOptions();
 
       if (isString(value) && !convertFromString) {
         return {
@@ -242,13 +247,15 @@ const createSelectize = (WrappedSelectize, async = false) => {
         return null
       }
 
-      if (!convert && !convertFromString) {
+      if (!conversionOptions && !convertFromString) {
         return value
       }
 
       if (isMulti) {
         if (Array.isArray(value)) {
           return value.map(this.createOption)
+        } else if (isPlainObject(value)) {
+          return [this.createOption(value)]
         } else {
           return []
         }
@@ -279,35 +286,54 @@ const createSelectize = (WrappedSelectize, async = false) => {
       return options.map(this.createOption)
     }
 
+    // Get prefered conversion options for option (object -> option).
+    getOptionConversionOptions = () => {
+      return has(this.props, 'convertToOption') ?
+        this.props.convertToOption : has(this.props, 'convert') ?
+          this.props.convert : null;
+    }
+
+    // Get prefered conversion options for value (option -> value).
+    getValueConversionOptions = () => {
+      return has(this.props, 'convertToValue') ?
+        this.props.convertToValue : has(this.props, 'convert') ?
+          this.props.convert : null;
+    }
+
     handleChange = (newValue) => {
       const {
         field: { name },
         form: { setFieldValue },
-        convert,
         convertFromString,
         isMulti,
         onChange,
-        customOnChange,
       } = this.props
 
+      const conversionOptions = this.getValueConversionOptions();
+
+      const preparedNewValue = newValue && isMulti ?
+        newValue.map(this.createIdNamePair) : newValue && !isMulti ?
+          this.createIdNamePair(newValue) : null;
+
+      // Call custom onChange handler.
       if (onChange) {
-        onChange(newValue)
+        if (isMulti) {
+          onChange(preparedNewValue)
+        } else {
+          onChange(preparedNewValue)
+        }
       }
 
-      if (customOnChange) {
-        return customOnChange(newValue)
-      }
-
-      if (!convert && !convertFromString) {
+      if (!conversionOptions && !convertFromString) {
         return setFieldValue(name, newValue, true)
       }
 
       if (isMulti) {
-        return setFieldValue(name, newValue.map(this.createIdNamePair), true)
+        return setFieldValue(name, preparedNewValue, true)
       }
 
       if (newValue) {
-        return setFieldValue(name, this.createIdNamePair(newValue), true)
+        return setFieldValue(name, preparedNewValue, true)
       } else {
         return setFieldValue(name, null, true)
       }
