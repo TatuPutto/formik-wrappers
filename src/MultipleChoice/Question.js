@@ -83,6 +83,11 @@ class Question extends PureComponent {
           :
           <span>{this.props.label}</span>
         }
+        {this.props.hint &&
+          <div className="text-muted">
+            <small>{this.props.hint}</small>
+          </div>
+        }
         {this.shouldDisplayClarification() && this.renderClarification()}
       </div>
     )
@@ -180,6 +185,7 @@ Question.propTypes = {
   field: object.isRequired,
   options: array.isRequired,
   label: string.isRequired,
+  hint: string,
   alignOptionsLeft: bool,
   clarification: object,
   depth: number,
