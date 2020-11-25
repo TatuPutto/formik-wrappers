@@ -26,16 +26,34 @@ class Text extends PureComponent {
     let value = e.target.value;
 
     if (this.props.normalize) {
-      value = this.props.normalize(
+      value = this.normalizeValue(value);
+    }
+
+    this.props.onChange && this.props.onChange(value)
+
+    return this.props.form.setFieldValue(this.props.field.name, value, true)
+  }
+
+  normalizeValue = (value) => {
+    if (typeof this.props.normalize === 'function') {
+      return this.props.normalize(
         value,
         this.props.field.value,
         this.props.form.values
       )
     }
 
-    this.props.onChange && this.props.onChange(value)
+    if (!value || value.length === 0) {
+      return value;
+    }
 
-    return this.props.form.setFieldValue(this.props.field.name, value, true)
+    const pattern = new RegExp(this.props.normalize);
+
+    if (pattern.test(value)) {
+      return value;
+    }
+
+    return this.props.field.value;
   }
 
   renderInputWithAddon = () => {
