@@ -481,6 +481,16 @@ const createSelectize = (WrappedSelectize, async = false) => {
       return 'No options'
     }
 
+    getCreateLabel = (input) => {
+      let label = 'Create'
+
+      if (this.props.isCreatable) {
+        label = this.props.createLabel
+      }
+
+      return `${label} ${input}`;
+    }
+
     renderMenuList = (innerProps) => {
       if (!this.props.pagination) {
         return <components.MenuList {...innerProps} />
@@ -578,6 +588,7 @@ const createSelectize = (WrappedSelectize, async = false) => {
           isDisabled={this.props.disabled || false}
           value={this.convertObjectToValue()}
           noOptionsMessage={this.getNoOptionsMessage}
+          formatCreateLabel={this.getCreateLabel}
           onChange={this.handleChange}
           styles={this.getStyles()}
           components={{
