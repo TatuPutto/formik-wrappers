@@ -80,14 +80,14 @@ const CheckboxButton = (props) => {
         disabled={disabled}
         tabIndex={tabIndex}
         style={{ marginRight: text || children ? '4px' : 0 }}
-        onBlur={onBlur}
-        onChange={() => {
+        onBlur={interactive ? onBlur : () => {}}
+        onChange={interactive ? () => {
           if (props.hasOwnProperty('onChange')) {
             props.onChange(!value)
           }
 
           props.form.setFieldValue(name, !value, true)
-        }}
+        } : () => {}}
       />
       {!disableMargin && ' '}
       {children && children}

@@ -16,15 +16,18 @@ const RadioButton = (props) => {
     disabled,
     disableMargin,
     id,
+    interactive,
     size,
     fullWidth,
     width,
     style,
+    transparent,
     tabIndex
   } = props
 
   const checked = value === checkedValue
-  const labelClassName = classnames('btn btn-outline-secondary mb-0', {
+  const labelClassName = classnames({
+    'btn btn-outline-secondary mb-0': !transparent,
     'active': checked,
     'disabled': disabled,
     [`btn-${size}`]: size,
@@ -35,6 +38,31 @@ const RadioButton = (props) => {
   const labelStyles = {
     ...style,
     ...width ? { width } : null
+  }
+
+  function handleOnBlur(e) {
+    if (!interactive) {
+      return;
+    }
+
+    return onBlur(e);
+  }
+
+  function handleOnChange(e) {
+    if (!interactive) {
+      return;
+    }
+
+    if (e.target.value === 'true') {
+      setFieldValue(name, true)
+      onChange && onChange(true)
+    } else if (e.target.value === 'false') {
+      setFieldValue(name, false)
+      onChange && onChange(false)
+    } else {
+      props.field.onChange(e)
+      onChange && onChange(e)
+    }
   }
 
   return (
@@ -49,19 +77,8 @@ const RadioButton = (props) => {
         id={id}
         checked={checked}
         value={checkedValue}
-        onBlur={onBlur}
-        onChange={(e) => {
-          if (e.target.value === 'true') {
-            setFieldValue(name, true)
-            onChange && onChange(true)
-          } else if (e.target.value === 'false') {
-            setFieldValue(name, false)
-            onChange && onChange(false)
-          } else {
-            props.field.onChange(e)
-            onChange && onChange(e)
-          }
-        }}
+        onBlur={handleOnBlur}
+        onChange={handleOnChange}
         disabled={disabled}
         tabIndex={tabIndex}
       />
@@ -74,9 +91,11 @@ const RadioButton = (props) => {
 
 RadioButton.defaultProps = {
   id: null,
+  interactive: true,
   disabled: false,
   disableMargin: false,
   fullWidth: false,
+  transparent: false,
   tabIndex: null,
 }
 
@@ -85,6 +104,8 @@ RadioButton.propTypes = {
   checkedValue: oneOfType([bool, string]).isRequired,
   children: oneOfType([object, string]),
   text: string,
+  interactive: bool,
+  transparent: bool,
   align: string,
   disabled: bool,
   disableMargin: bool,

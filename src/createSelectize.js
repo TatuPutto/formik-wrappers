@@ -18,7 +18,8 @@ const createSelectize = (WrappedSelectize, async = false) => {
         convert,
         convertToValue,
         convertFromString,
-        convertOutput
+        convertOutput,
+        t
       } = this.props
 
       const convertOpts = convertToValue ?
@@ -272,7 +273,7 @@ const createSelectize = (WrappedSelectize, async = false) => {
       const {
         options,
         convert,
-        convertFromString
+        convertFromString,
       } = this.props
 
       if (!options) {
@@ -344,7 +345,8 @@ const createSelectize = (WrappedSelectize, async = false) => {
         this.props.includeValueAsSubLabel ||
         this.props.sublabelProp ||
         this.props.disabledOptionAlert ||
-        this.props.disableOptionWhen
+        this.props.disableOptionWhen ||
+        this.props.translateLabel
       ) {
         return (
           <components.Option {...props}>
@@ -361,11 +363,20 @@ const createSelectize = (WrappedSelectize, async = false) => {
     }
 
     createCustomOptionLabel = (option) => {
-      const { disabledOptionAlert, includeValueAsSubLabel } = this.props
+      const {
+        disabledOptionAlert,
+        includeValueAsSubLabel,
+        translateLabel,
+        t,
+      } = this.props
 
       return (
         <div key={option.value}>
-          <div>{option.label}</div>
+          {translateLabel ?
+            <div>{t(option.label)}</div>
+            :
+            <div>{option.label}</div>
+          }
           <div className="text-muted">
             {includeValueAsSubLabel ?
               <small>{option.value}</small>
@@ -379,7 +390,7 @@ const createSelectize = (WrappedSelectize, async = false) => {
                 <small className={`text-${disabledOptionAlert.color}`}>
                   {/*<span className={`fas fa-${disabledOptionAlert.icon || 'exclamation-triangle'} mr-1`} />*/}
                   <span className={`glyphicons glyphicons-${disabledOptionAlert.icon || 'warning-sign'} mr-1`} />
-                  {disabledOptionAlert.text}
+                  {t(disabledOptionAlert.text)}
                 </small>
                 : option.alerts.length > 1 ?
                   <small>
@@ -389,14 +400,14 @@ const createSelectize = (WrappedSelectize, async = false) => {
                     }}>
                       {option.alerts.map((alert, i) => (
                         <li key={i}>
-                          {alert}
+                          {t(alert)}
                         </li>
                       ))}
                     </ul> 
                   </small>
                   :
                     <small>
-                      {option.alerts[0]}
+                      {t(option.alerts[0])}
                     </small>
               }
            </div>
@@ -443,6 +454,12 @@ const createSelectize = (WrappedSelectize, async = false) => {
       return { options }
     }
 
+    renderTranslatedSingleValue = ({ children, ...props }) => (
+      <components.SingleValue {...props}>
+        {this.props.t(children)}
+      </components.SingleValue>
+    );
+
     getNoOptionsMessage = () => {
       const {
         loading,
@@ -452,10 +469,11 @@ const createSelectize = (WrappedSelectize, async = false) => {
         minSearchLengthMessage,
         inputValue,
         resolveToFormValue,
+        t,
       } = this.props
 
       if (loading) {
-        return loadingMessage || 'Loading...'
+        return t(loadingMessage || 'Loading...')
       }
 
       if (noOptionsMessage && noOptionsMessage.type === 'html') {
@@ -468,24 +486,24 @@ const createSelectize = (WrappedSelectize, async = false) => {
         )
       } else if (minSearchLength && minSearchLength > (inputValue ? inputValue.length : 0)) {
         if (minSearchLengthMessage) {
-          return minSearchLengthMessage.replace('$', minSearchLength - inputValue.length)
+          return t(minSearchLengthMessage, [minSearchLength - inputValue.length])
         } else {
           return `Type ${minSearchLength - inputValue.length} more characters to start the search.`
         }
       } else if (noOptionsMessage && resolveToFormValue) {
         return resolveToFormValue(noOptionsMessage)
       } else if (noOptionsMessage) {
-        return noOptionsMessage;
+        return t(noOptionsMessage);
       }
 
-      return 'No options'
+      return t('noResults')
     }
 
     getCreateLabel = (input) => {
-      let label = 'Create'
+      let label = this.props.t('create')
 
       if (this.props.isCreatable) {
-        label = this.props.createLabel
+        label = this.props.t(this.props.createLabel)
       }
 
       return `${label} ${input}`;
@@ -602,6 +620,8 @@ const createSelectize = (WrappedSelectize, async = false) => {
             ...has(this.props, 'components.Option') ?
               { Option: get(this.props, 'components.Option') } :
               { Option: this.renderOption },
+            ...get(this.props, 'translateLabel') ?
+              { SingleValue: this.renderTranslatedSingleValue } : null,
           }}
           {...this.props.handleSearchChange ?
             { onInputChange: this.props.handleSearchChange } : null}

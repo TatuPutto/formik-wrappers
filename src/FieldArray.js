@@ -133,7 +133,7 @@ class FieldArray extends PureComponent {
     // })
   }
 
-  initializeNewRow = () => {
+  initializeNewRow = (force = false) => {
     const { order, initialValues } = this.props;
 
     return order.reduce((row, fieldName) => {
@@ -169,6 +169,19 @@ class FieldArray extends PureComponent {
     return Object.values(rows[index]).every((value) => !value)
   }
 
+  renderRowRemoveButton = (index) => {
+    return (
+      <button
+        type="button"
+        className="btn btn-outline-danger ml-1"
+        style={{ height: '34px' }}
+        onClick={() => this.removeItem(index)}
+      >
+        <span className="glyphicons glyphicons-bin" />
+      </button>
+    );
+  }
+
   renderRow = (contact, index) => {
 
     const {
@@ -176,24 +189,30 @@ class FieldArray extends PureComponent {
       name,
       push,
       controlled = true,
-
+      rowElement: RowElement,
       newRowForEachItem = true,
-
+      removable = false,
     } = this.props
 
     return (
       <Fragment>
-        {newRowForEachItem ?
-          <div className="row">
+        {newRowForEachItem && RowElement ?
+          <RowElement>
             {this.renderFields(index, this.props.shape)}
-          </div>
-          :
-          <Fragment>
-            {this.renderFields(index, this.props.shape)}
-          </Fragment>
+            {removable && this.renderRowRemoveButton(index)}
+          </RowElement>
+          : newRowForEachItem ?
+            <div className="row">
+              {this.renderFields(index, this.props.shape)}
+              {removable && this.renderRowRemoveButton(index)}
+            </div>
+            :
+            <Fragment>
+              {this.renderFields(index, this.props.shape)}
+              {removable && this.renderRowRemoveButton(index)}
+            </Fragment>
         }
       </Fragment>
-
     )
 
     // return (
@@ -255,10 +274,12 @@ class FieldArray extends PureComponent {
       insert,
       push,
       controlled = true,
+      creatable = false,
       accordion = false,
       itemIdProp = 'id',
       itemLabelProp,
-      noResultsMessage = 'Ei tuloksia',
+      noResultsMessage = 'noResults',
+      createLabel = 'addNewEntry',
     } = this.props
 
     const items = getIn(values, name)
@@ -300,6 +321,17 @@ class FieldArray extends PureComponent {
           <div className="text-muted text-center" style={{ padding: '2rem' }}>
             {noResultsMessage}
           </div>
+        }
+        {creatable &&
+          <button
+            type="button"
+            className="btn btn-link"
+            onClick={() => push({})}
+          >
+            {/* <span className="fas fa-plus mr-1" /> */}
+            <span className="glyphicons glyphicons-plus mr-1" />
+            {createLabel}
+          </button>
         }
       </Fragment>
     )
