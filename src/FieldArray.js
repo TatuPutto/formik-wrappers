@@ -280,6 +280,9 @@ class FieldArray extends PureComponent {
       itemLabelProp,
       noResultsMessage = 'noResults',
       createLabel = 'addNewEntry',
+      header,
+      renderHeader,
+      children,
     } = this.props
 
     const items = getIn(values, name)
@@ -293,15 +296,30 @@ class FieldArray extends PureComponent {
               const isExpanded = this.state.expanded.includes(item[itemIdProp].toString())
 
               return (
-                <div className="card" key={i} id={item[itemIdProp]}>
-                  <div className="card-header" onClick={() => this.expandItem(item[itemIdProp].toString())}>
+                <div
+                  key={i}
+                  id={item[itemIdProp]}
+                  className={classnames('card', this.props.wrapperClass)}
+                >
+                  <div
+                    className={
+                      classnames(
+                        'card-header d-flex align-items-center clickable',
+                        this.props.headerClass 
+                      )
+                    }
+                    onClick={() => this.expandItem(item[itemIdProp].toString())}
+                  >
                     <span
-                      className={classnames('fas fa-fw mr-1', {
-                        'fa-chevron-down': isExpanded,
-                        'fa-chevron-right': !isExpanded,
+                      className={classnames('fas fa-fw mr-1 d-print-none', {
+                        // 'fa-chevron-down': isExpanded,
+                        // 'fa-chevron-right': !isExpanded,
+                        'glyphicons glyphicons-chevron-down': isExpanded,
+                        'glyphicons glyphicons-chevron-right': !isExpanded,
                       })}
                     />
-                    {itemLabelProp && item[itemLabelProp]}
+                    {header && renderHeader(`${name}.${i}`, item)}
+                    {!header && itemLabelProp && item[itemLabelProp]}
                   </div>
                   <Collapse expanded={isExpanded}>
                     <div className="card-body">

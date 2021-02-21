@@ -1,18 +1,28 @@
 import React, { PureComponent } from 'react'
 import { components } from 'react-select'
-import { get, set, has, isEmpty, isFunction, isString, isPlainObject } from 'lodash'
+import { get, set, has, isEmpty, isEqual, isFunction, isString, isPlainObject } from 'lodash'
 
 
 const Control = (props) => (
-  <components.Control
-    {...props}
-    
-  />
+  <components.Control {...props} />
 )
 
 /* eslint-disable react/prop-types */
 const createSelectize = (WrappedSelectize, async = false) => {
   return class Selectize extends PureComponent {
+    componentDidUpdate(prevProps) {
+      const prevOptions = prevProps.options;
+      const nextOptions = this.props.options;
+
+      if (
+        this.props.autoSelectWhenSingleOption &&
+        get(nextOptions, 'length') === 1 &&
+        !isEqual(prevOptions, nextOptions)
+      ) {
+        this.handleChange(this.createOption(this.props.options[0]));
+      }
+    }
+
     createIdNamePair = (option) => {
       const {
         convert,
@@ -473,7 +483,7 @@ const createSelectize = (WrappedSelectize, async = false) => {
       } = this.props
 
       if (loading) {
-        return t(loadingMessage || 'Loading...')
+        return t(loadingMessage || 'loading')
       }
 
       if (noOptionsMessage && noOptionsMessage.type === 'html') {
@@ -488,7 +498,7 @@ const createSelectize = (WrappedSelectize, async = false) => {
         if (minSearchLengthMessage) {
           return t(minSearchLengthMessage, [minSearchLength - inputValue.length])
         } else {
-          return `Type ${minSearchLength - inputValue.length} more characters to start the search.`
+          return t('typeInMinSearchLengthToStartSearch', [minSearchLength - inputValue.length])
         }
       } else if (noOptionsMessage && resolveToFormValue) {
         return resolveToFormValue(noOptionsMessage)
