@@ -182,8 +182,7 @@ class FieldArray extends PureComponent {
     );
   }
 
-  renderRow = (contact, index) => {
-
+  renderRow = (item, index) => {
     const {
       form: { values },
       name,
@@ -332,8 +331,8 @@ class FieldArray extends PureComponent {
             })}
           </div>
         }
-        {!accordion && hasItems && items.map((employee, i) => (
-          this.renderRow(employee, i)
+        {!accordion && hasItems && items.map((item, i) => (
+          this.renderRow(item, i)
         ))}
         {!hasItems &&
           <div className="text-muted text-center" style={{ padding: '2rem' }}>

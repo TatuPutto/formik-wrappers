@@ -14,6 +14,7 @@ const CheckboxButton = (props) => {
     fullWidth,
     multiline,
     size,
+    style,
     strikethrough,
     text,
     align,
@@ -35,40 +36,6 @@ const CheckboxButton = (props) => {
     'text-del': strikethrough,
     [className]: className,
   })
-
-  // <span className="far fa-check-square" />
-  // <span className="far fa-square" />
-
-  /*
-  interactive ?
-          <input
-            type="checkbox"
-            name={name}
-            id={id}
-            checked={checked}
-            disabled={disabled || interactive}
-            tabIndex={tabIndex}
-            onBlur={onBlur}
-            onChange={() => {
-              if (props.hasOwnProperty('onChange')) {
-                props.onChange(!value)
-              }
-
-              props.form.setFieldValue(name, !value, true)
-            }}
-          />
-          : checked ?
-            <span 
-              className="glyphicons glyphicons-check" 
-              style={{ fontSize: '110%', marginTop: '-6px' }}
-            />
-            :
-            <span
-              className="glyphicons glyphicons-unchecked"
-              style={{ fontSize: '110%', marginTop: '-6px' }}
-            />
-        
-  */
 
   const labelContent = (
     <Fragment>
@@ -110,6 +77,7 @@ const CheckboxButton = (props) => {
     <label
       hltmfor={id}
       className={labelClassName}
+      style={style}
     >
       {labelContent}
     </label>
@@ -124,6 +92,7 @@ CheckboxButton.defaultProps = {
   multiline: false,
   strikethrough: false,
   tabIndex: null,
+  style: {},
   transparent: false
 }
 
@@ -138,6 +107,7 @@ CheckboxButton.propTypes = {
   disableMargin: bool,
   multiline: bool,
   size: string,
+  style: object,
   strikethrough: bool,
   tabIndex: number,
   transparent: bool,
