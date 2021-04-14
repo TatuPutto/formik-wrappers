@@ -17,12 +17,6 @@ class Text extends PureComponent {
   }
 
   handleChange = (e) => {
-    // if (this.props.onChange) {
-    //   return this.props.onChange(e, this.props.field.onChange)
-    // } else {
-    //  return this.props.form.setFieldValue(this.props.field.name, e.target.value, true)
-    // }
-
     let value = e.target.value;
 
     if (this.props.normalize) {
@@ -71,17 +65,16 @@ class Text extends PureComponent {
   }
 
   renderAddon = () => {
-    // const addonWrapperClassName = classnames({
-    //   'input-group-prepend': !this.props.addon.position || this.props.addon.position === 'start',
-    //   'input-group-append': this.props.addon.position && this.props.addon.position === 'end',
-    // })
+    const addonWrapperClassName = classnames({
+      'input-group-prepend': !this.props.addon.position || this.props.addon.position === 'start',
+      'input-group-append': this.props.addon.position && this.props.addon.position === 'end',
+    })
 
-    // {/*<span className={`fas fa-${this.props.addon.icon}`} />*/}
     return (
-      <div className="input-group-addon">
+      <div className={addonWrapperClassName}>
         <span className="input-group-text">
           {this.props.addon.icon &&
-            <span className={`glyphicons glyphicons-${this.props.addon.icon}`} />
+            <span className={`far fa-${this.props.addon.icon}`} />
           }
           {this.props.addon.text &&
             <span>{this.props.addon.text}</span>
