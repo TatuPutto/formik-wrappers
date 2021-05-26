@@ -177,7 +177,7 @@ class FieldArray extends PureComponent {
         style={{ height: '34px' }}
         onClick={() => this.removeItem(index)}
       >
-        <span className="glyphicons glyphicons-bin" />
+        <span className="far fa-trash-alt" />
       </button>
     );
   }
@@ -343,8 +343,7 @@ class FieldArray extends PureComponent {
             className="btn btn-link"
             onClick={() => push({})}
           >
-            {/* <span className="fas fa-plus mr-1" /> */}
-            <span className="glyphicons glyphicons-plus mr-1" />
+            <span className="fas fa-plus mr-1" />
             {createLabel}
           </button>
         }
