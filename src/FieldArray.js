@@ -311,17 +311,15 @@ class FieldArray extends PureComponent {
                   >
                     <span
                       className={classnames('fas fa-fw mr-1 d-print-none', {
-                        // 'fa-chevron-down': isExpanded,
-                        // 'fa-chevron-right': !isExpanded,
-                        'glyphicons glyphicons-chevron-down': isExpanded,
-                        'glyphicons glyphicons-chevron-right': !isExpanded,
+                        'fa-chevron-down': isExpanded,
+                        'fa-chevron-right': !isExpanded,
                       })}
                     />
                     {header && renderHeader(`${name}.${i}`, item)}
                     {!header && itemLabelProp && item[itemLabelProp]}
                   </div>
                   <Collapse expanded={isExpanded}>
-                    <div className="card-body">
+                    <div>
                       {this.renderRow(item, i)}
                     </div>
                   </Collapse>
