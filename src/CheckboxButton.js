@@ -8,6 +8,7 @@ const CheckboxButton = (props) => {
     id,
     interactive,
     children,
+    checked,
     class: className,
     disabled,
     disableMargin,
@@ -23,13 +24,13 @@ const CheckboxButton = (props) => {
     label,
   } = props
 
-  const checked = value === true
+  const isChecked = value === true || checked !== undefined && checked;
   const labelClassName = classnames({
     'clickable': interactive && !disabled,
     'btn btn-outline-secondary': !transparent,
     'btn-multiline text-left': multiline,
     [`btn-${size}`]: size,
-    'active': checked,
+    'active': isChecked,
     'disabled': disabled,
     [`text-${align}`]: align,
     'w-100': fullWidth,
@@ -43,7 +44,7 @@ const CheckboxButton = (props) => {
         type="checkbox"
         name={name}
         id={id}
-        checked={checked}
+        checked={isChecked}
         disabled={disabled}
         tabIndex={tabIndex}
         style={{ marginRight: text || children ? '4px' : 0 }}
