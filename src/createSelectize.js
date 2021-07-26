@@ -512,11 +512,11 @@ const createSelectize = (WrappedSelectize, async = false) => {
     getCreateLabel = (input) => {
       let label = this.props.t('create')
 
-      if (this.props.isCreatable) {
+      if (this.props.isCreatable && this.props.createLabel) {
         label = this.props.t(this.props.createLabel)
       }
 
-      return `${label} ${input}`;
+      return `${label} ${input}`
     }
 
     renderMenuList = (innerProps) => {
