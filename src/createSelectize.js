@@ -558,11 +558,11 @@ const createSelectize = (WrappedSelectize, async = false) => {
           >
             {this.props.loading ?
               <span>
-                {this.props.loadingMoreMessage || 'Loading more results...'}
+                {this.props.t(this.props.loadingMoreMessage || 'loadingMoreResults')}
               </span>
               :
               <span>
-                {this.props.loadMoreMessage || 'Load more results'}
+                {this.props.t(this.props.loadMoreMessage || 'loadMoreResults')}
               </span>
             }
           </button>
