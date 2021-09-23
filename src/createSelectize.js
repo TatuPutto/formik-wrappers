@@ -104,7 +104,8 @@ const createSelectize = (WrappedSelectize, async = false) => {
         }
       }
 
-      option = this.setDisabledStatus(option, baseValue)
+      option = this.setOptionNotifications(option, baseValue)
+      option = this.disableOptionIfNecessary(option, baseValue)
 
       if (includedProps || includeAllProps) {
         const propsToInclude = includeAllProps ?
@@ -131,7 +132,35 @@ const createSelectize = (WrappedSelectize, async = false) => {
       return option
     }
 
-    setDisabledStatus = (option, baseValue) => {
+    assertOptionCondition = (baseValue, condition) => {
+      if (condition.hasOwnProperty('path')) { 
+        return get(baseValue, condition.path) === condition.is
+      }
+      return this.props.evaluate2(condition.condition, baseValue)
+    }
+
+    setOptionNotifications = (option, baseValue) => {
+      const { notifyOptionWhen } = this.props
+
+      if (!notifyOptionWhen) {
+        return option
+      }
+
+      if (Array.isArray(notifyOptionWhen)) {
+        const notifications = notifyOptionWhen
+          .filter((entry) => this.assertOptionCondition(baseValue, entry))
+          .map((entry) => entry.notification)
+
+        return {
+          ...option,
+          notifications,
+        }
+      }
+
+      return option
+    }
+
+    disableOptionIfNecessary = (option, baseValue) => {
       const { disableOptionWhen } = this.props
 
       if (!disableOptionWhen) {
@@ -147,15 +176,9 @@ const createSelectize = (WrappedSelectize, async = false) => {
 
       if (Array.isArray(disableOptionWhen)) {
         const alerts = disableOptionWhen
-          .filter((entry) => {
-            if (entry.hasOwnProperty('path')) { 
-              return get(baseValue, entry.path) === entry.is
-            }
-
-            return this.props.evaluate2(entry.condition, baseValue);
-          })
+          .filter((entry) => this.assertOptionCondition(baseValue, entry))
           .map((entry) => entry.alert)
-
+        
         return {
           ...option,
           isDisabled: Boolean(alerts.length),
@@ -216,8 +239,10 @@ const createSelectize = (WrappedSelectize, async = false) => {
       const excludedProps = [
         'value',
         'label',
+        'sublabel',
         'isDisabled',
         'alerts',
+        'notifications'
       ]
 
       return Object
@@ -356,6 +381,7 @@ const createSelectize = (WrappedSelectize, async = false) => {
         this.props.sublabelProp ||
         this.props.disabledOptionAlert ||
         this.props.disableOptionWhen ||
+        this.props.alertOptionWhen ||
         this.props.translateLabel
       ) {
         return (
@@ -398,7 +424,6 @@ const createSelectize = (WrappedSelectize, async = false) => {
             <div className="alert alert-warning pt-1 pb-1 pl-2 pr-2 mt-1 mb-0">
               {disabledOptionAlert ?
                 <small className={`text-${disabledOptionAlert.color}`}>
-                  {/*<span className={`fas fa-${disabledOptionAlert.icon || 'exclamation-triangle'} mr-1`} />*/}
                   <span className={`glyphicons glyphicons-${disabledOptionAlert.icon || 'warning-sign'} mr-1`} />
                   {t(disabledOptionAlert.text)}
                 </small>
@@ -421,6 +446,28 @@ const createSelectize = (WrappedSelectize, async = false) => {
                     </small>
               }
            </div>
+          }
+          {option.notifications && option.notifications.length &&
+            <div className="alert alert-warning pt-1 pb-1 pl-2 pr-2 mt-1 mb-0">
+              {option.notifications.length > 1 ?
+                <small>
+                  <ul style={{
+                    paddingInlineStart: '1.5rem',
+                    marginBottom: 0,
+                  }}>
+                    {option.notifications.map((notification, i) => (
+                      <li key={i}>
+                        {t(notification)}
+                      </li>
+                    ))}
+                  </ul> 
+                </small>
+                :
+                  <small>
+                    {t(option.notifications[0])}
+                  </small>
+              }
+            </div>
           }
         </div>
       )
