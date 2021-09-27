@@ -14,10 +14,18 @@ class Question extends PureComponent {
     if (fieldValue) {
       return fieldValue.value
     }
+
+    if (!fieldValue && this.props.multiAnswer) {
+      return []
+    }
   }
 
   hasBeenAnswered = () => {
     const answer = this.getAnswer()
+
+    if (this.props.multiAnswer) {
+      return answer && !!answer.length
+    }
 
     if (answer === undefined || answer === null) {
       return false
@@ -39,11 +47,18 @@ class Question extends PureComponent {
 
     if (clarificationConfig.hasOwnProperty('requiredWhenValueIs')) {
       if (Array.isArray(clarificationConfig.requiredWhenValueIs)) {
-        return clarificationConfig.requiredWhenValueIs.some((answer) => answer === this.getAnswer())
+        return clarificationConfig.requiredWhenValueIs
+          .some(this.answerMatches)
       }
-
-      return clarificationConfig.requiredWhenValueIs === this.getAnswer()
+      return this.answerMatches(clarificationConfig.requiredWhenValueIs)
     }
+  }
+
+  answerMatches = (answerToMatch) => {
+    if (this.props.multiAnswer) {
+      return this.getAnswer().includes(answerToMatch)
+    }
+    return answerToMatch === this.getAnswer()
   }
 
   shouldDisplayClarification = () => {
@@ -79,7 +94,7 @@ class Question extends PureComponent {
     const labelEl = (
       <div style={labelWrapperStyles}>
         {this.props.isSection ?
-          <i>{this.props.label}</i>
+          <b>{this.props.label}</b>
           :
           <span>{this.props.label}</span>
         }

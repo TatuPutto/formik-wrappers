@@ -105,7 +105,6 @@ class Form extends PureComponent {
   }
 
   render() {
-
     if (this.props.condenseLayout) {
       return (
         <div>
