@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react'
 import { components } from 'react-select'
-import { get, set, has, isEmpty, isEqual, isFunction, isString, isPlainObject } from 'lodash'
+import { get, set, has, isEmpty, isEqual, isFunction, isString, isPlainObject, isArray } from 'lodash'
 
 
 const Control = (props) => (
@@ -75,7 +75,7 @@ const createSelectize = (WrappedSelectize, async = false) => {
         sublabelProp,
       } = this.props
 
-      const convertOpts = this.getOptionConversionOptions();
+      const convertOpts = this.getOptionConversionOptions()
 
       let option
 
@@ -85,7 +85,7 @@ const createSelectize = (WrappedSelectize, async = false) => {
           label: baseValue,
         }
 
-        option = this.setDisabledStatus(option, baseValue)
+        option = this.disableOptionIfNecessary(option, baseValue)
 
         return option
       }
@@ -94,16 +94,15 @@ const createSelectize = (WrappedSelectize, async = false) => {
         option = {
           value: baseValue.id,
           label: baseValue.name,
-          ...sublabelProp ? { sublabel: baseValue[sublabelProp] } : null
         }
       } else {
         option = {
           value: this.resolveFromSourceProps(baseValue, convertOpts.valueSourceProp),
           label: this.resolveFromSourceProps(baseValue, convertOpts.labelSourceProp),
-          ...sublabelProp ? { sublabel: baseValue[sublabelProp] } : null
         }
       }
 
+      option = this.createSublabelIfNecessary(option, baseValue, sublabelProp)
       option = this.setOptionNotifications(option, baseValue)
       option = this.disableOptionIfNecessary(option, baseValue)
 
@@ -129,6 +128,21 @@ const createSelectize = (WrappedSelectize, async = false) => {
           }
         })
       }
+      return option
+    }
+
+    createSublabelIfNecessary = (option, baseValue, sublabelPropOrArrayOfProps) => {
+      if (!sublabelPropOrArrayOfProps) {
+        return option
+      }
+
+      if (isArray(sublabelPropOrArrayOfProps)) {
+        const sublabels = sublabelPropOrArrayOfProps.map(prop => baseValue[prop])
+        set(option, 'sublabel', sublabels)
+        return option
+      }
+      
+      set(option, 'sublabel', baseValue[sublabelPropOrArrayOfProps])
       return option
     }
 
@@ -240,6 +254,7 @@ const createSelectize = (WrappedSelectize, async = false) => {
         'value',
         'label',
         'sublabel',
+        'sublabelProp',
         'isDisabled',
         'alerts',
         'notifications'
@@ -416,8 +431,16 @@ const createSelectize = (WrappedSelectize, async = false) => {
           <div className="text-muted">
             {includeValueAsSubLabel ?
               <small>{option.value}</small>
-              :
-              <small>{option.sublabel}</small>
+              : isArray(option.sublabel) ?
+                option.sublabel
+                  .filter(value => !!value)
+                  .map(value => (
+                    <div key={value}>
+                      <small>{value}</small>
+                    </div>
+                  ))
+                :
+                <small>{option.sublabel}</small>
             }
           </div>
           {option.isDisabled &&
