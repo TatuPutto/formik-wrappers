@@ -1,10 +1,8 @@
 import React, { PureComponent, Fragment } from 'react'
-import { array, bool, object, oneOfType, number, string } from 'prop-types'
-import { Field, getIn } from 'formik'
+import { array, object, oneOfType, string } from 'prop-types'
+import {  getIn } from 'formik'
 import Collapse from 'react-smooth-collapse'
-
 import classnames from 'classnames'
-
 
 class FieldArray extends PureComponent {
 
@@ -16,14 +14,7 @@ class FieldArray extends PureComponent {
     }
   }
 
-  // componentDidMount() {
-  //   if (!Array.isArray(this.getRows()) || this.props.initializeWithEmptyRow) {
-  //     this.props.push(this.initializeNewRow());
-  //   }
-  // }
-
   expandItem = (i) => {
-
     const isExpanded = this.state.expanded.includes(i)
 
     if (isExpanded) {
@@ -35,7 +26,6 @@ class FieldArray extends PureComponent {
         expanded: this.state.expanded.concat(i)
       })
     }
-
   }
 
   getRows = () => {
@@ -55,18 +45,6 @@ class FieldArray extends PureComponent {
       shape
     } = this.props
 
-    //
-    // if (childElConfig.hasOwnProperty('model')) {
-    //   const fullyQualifiedFieldName = `${name}.${index}.${elConfig.model}`
-    //   return this.props.renderField(fullyQualifiedFieldName, childElConfig)
-    // } else {
-    //   const fullyQualifiedFieldName = `${name}.${index}`
-    //   return this.props.renderField(fullyQualifiedFieldName, childElConfig)
-    // }
-
-    // console.log('@Mapping child elements', children);
-
-
     return children.map((childElConfig) => {
 
       let fullyQualifiedFieldName
@@ -81,18 +59,13 @@ class FieldArray extends PureComponent {
         }
       } else if (childElConfig.hasOwnProperty('model')) {
         fullyQualifiedFieldName = `${name}.${index}.${childElConfig.model}`
-        // return this.props.renderField(fullyQualifiedFieldName, childElConfig)
       } else if (childElConfig.hasOwnProperty('name')) {
           fullyQualifiedFieldName = `${name}.${index}.${childElConfig.name}`
-          // return this.props.renderField(fullyQualifiedFieldName, childElConfig)
       } else {
         fullyQualifiedFieldName = `${name}.${index}`
       }
 
       const Element = this.props.renderField(fullyQualifiedFieldName, childElConfig)
-      // console.log('ELEMENT', Element)
-
-      // return Element
 
       if (childElConfig.hasOwnProperty('children')) {
         return (
@@ -101,36 +74,11 @@ class FieldArray extends PureComponent {
             {},
             this.renderFields(index, childElConfig.children)
           )
-          // <Element>
-          //   {this.renderFields(index, childElConfig.children)}
-          // </Element>
         )
       } else {
         return Element
       }
-
-      // const fullyQualifiedFieldName = `${name}.${index}.${childElConfig.model}`
-      // return this.props.renderField(fullyQualifiedFieldName, childElConfig)
-
     })
-
-    // return order.map((fieldName) => {
-    //   const fieldConfig = shape[fieldName]
-    //   const fullyQualifiedFieldName = `${name}.${index}.${fieldName}`
-    //
-    //   return this.props.renderField(fullyQualifiedFieldName, fieldConfig)
-    //
-    //
-    //   // return (
-    //   //   <Field
-    //   //     key={fullyQualifiedFieldName}
-    //   //     name={fullyQualifiedFieldName}
-    //   //     elConfig={fieldConfig}
-    //   //     fieldComponent={fieldComponent}
-    //   //     component={fieldWrapperComponent}
-    //   //   />
-    //   // )
-    // })
   }
 
   initializeNewRow = (force = false) => {
@@ -170,14 +118,19 @@ class FieldArray extends PureComponent {
   }
 
   renderRowRemoveButton = (index) => {
+    const style = this.props.removeButtonAsFooter ?
+      { border: 'none' } : { height: '34px' }
     return (
       <button
         type="button"
         className="btn btn-outline-danger ml-1"
-        style={{ height: '34px' }}
+        style={style}
         onClick={() => this.removeItem(index)}
       >
         <span className="far fa-trash-alt" />
+        {this.props.removeLabel &&
+          ` ${this.props.removeLabel}`
+        }
       </button>
     );
   }
@@ -191,78 +144,31 @@ class FieldArray extends PureComponent {
       rowElement: RowElement,
       newRowForEachItem = true,
       removable = false,
+      removeButtonAsFooter = false,
     } = this.props
+
+    const shouldRenderRemoveButton = removable && !removeButtonAsFooter;
 
     return (
       <Fragment>
         {newRowForEachItem && RowElement ?
           <RowElement>
             {this.renderFields(index, this.props.shape)}
-            {removable && this.renderRowRemoveButton(index)}
+            {shouldRenderRemoveButton && this.renderRowRemoveButton(index)}
           </RowElement>
           : newRowForEachItem ?
             <div className="row">
               {this.renderFields(index, this.props.shape)}
-              {removable && this.renderRowRemoveButton(index)}
+              {shouldRenderRemoveButton && this.rend(index)}
             </div>
             :
             <Fragment>
               {this.renderFields(index, this.props.shape)}
-              {removable && this.renderRowRemoveButton(index)}
+              {shouldRenderRemoveButton && this.renderRowRemoveButton(index)}
             </Fragment>
         }
       </Fragment>
     )
-
-    // return (
-    //   <div key={index}>
-    //     <div className={controlled && canRemoveRow ? "row" : ""}>
-    //       <div className={controlled && canRemoveRow ? "col-11" : ""}>
-    //
-    //         <div className={classnames({ 'row': newRowForEachItem })}>
-    //           {this.renderFields(index, this.props.shape)}
-    //         </div>
-    //
-    //       </div>
-    //
-    //       {controlled &&
-    //         <Fragment>
-    //           <div className={controlled && canRemoveRow ? "col-1" : ""}>
-    //
-    //             <label className="d-block invisible">
-    //               -
-    //             </label>
-    //             {canRemoveRow &&
-    //               <button
-    //                 type="button"
-    //                 className="btn btn-outline-secondary"
-    //                 onClick={() => this.removeItem(index)} // remove a friend from the list
-    //               >
-    //                 <span className="fas fa-trash-alt" />
-    //               </button>
-    //             }
-    //           </div>
-    //
-    //         {index === values[name].length - 1 &&
-    //           <button
-    //             type="button"
-    //             className="btn btn-link"
-    //             onClick={() => push(this.initializeNewRow())}
-    //           >
-    //             <span className="fas fa-plus mr-1" />
-    //             Add new entry
-    //           </button>
-    //         }
-    //
-    //         </Fragment>
-    //       }
-    //
-    //
-    //     </div>
-    //
-    //
-    //   </div>
-    // )
   }
 
   render() {
@@ -281,7 +187,10 @@ class FieldArray extends PureComponent {
       createLabel = 'addNewEntry',
       header,
       renderHeader,
+      displayDivider,
       children,
+      removable = false,
+      removeButtonAsFooter = false,
     } = this.props
 
     const items = getIn(values, name)
@@ -329,15 +238,67 @@ class FieldArray extends PureComponent {
             })}
           </div>
         }
-        {!accordion && hasItems && items.map((item, i) => (
-          this.renderRow(item, i)
-        ))}
+        {!accordion && hasItems && items.map((item, i, arr) => {
+          if (displayDivider && i > 0) {
+            return (
+              <Fragment key={i}>
+                <hr />
+                {this.renderRow(item, i)}
+                <div
+                  className={classnames('d-flex', {
+                    'justify-content-between': creatable && i === arr.length - 1,
+                    'justify-content-end': !creatable || i !== arr.length - 1,
+                  })}
+                >
+                  {creatable && i === arr.length - 1 &&
+                    <button
+                      type="button"
+                      className="btn btn-link"
+                      onClick={() => push({})}
+                    >
+                      <span className="fas fa-plus mr-1" />
+                      {createLabel}
+                    </button>
+                  }
+                  {removable && removeButtonAsFooter &&
+                    this.renderRowRemoveButton(i)
+                  }
+                </div>
+              </Fragment>
+            )
+          }
+          return (
+            <Fragment key={i}>
+              {this.renderRow(item, i)}
+              <div
+                className={classnames('d-flex', {
+                  'justify-content-between': creatable && i === arr.length - 1,
+                  'justify-content-end': !creatable || i !== arr.length - 1,
+                })}
+              >
+                {creatable && i === arr.length - 1 &&
+                  <button
+                    type="button"
+                    className="btn btn-link"
+                    onClick={() => push({})}
+                  >
+                    <span className="fas fa-plus mr-1" />
+                    {createLabel}
+                  </button>
+                }
+                {removable && removeButtonAsFooter &&
+                  this.renderRowRemoveButton(i)
+                }
+              </div>
+            </Fragment>
+          )
+        })}
         {!hasItems &&
           <div className="text-muted text-center" style={{ padding: '2rem' }}>
             {noResultsMessage}
           </div>
         }
-        {creatable &&
+        {creatable && (accordion || !accordion && !hasItems) &&
           <button
             type="button"
             className="btn btn-link"
