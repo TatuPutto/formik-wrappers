@@ -1,12 +1,28 @@
-import React, { Fragment, PureComponent } from 'react'
+import React, { PureComponent } from 'react'
 import { array, bool, func, number, object, string } from 'prop-types'
 import { Field, getIn } from 'formik'
 import classnames from 'classnames'
-import OptionControl from './OptionControl'
 import Text from '../Text'
 
 
 class Question extends PureComponent {
+
+  state = {
+    isHover: false,
+    showingOptionalClarification: false,
+  }
+
+  toggleHover = () => {
+    this.setState({
+      isHover: !this.state.isHover, 
+    })
+  }
+
+  toggleOptionalClarification = () => {
+    this.setState({
+      showingOptionalClarification: !this.state.showingOptionalClarification, 
+    })
+  }
 
   getAnswer = () => {
     const fieldValue = getIn(this.props.form.values, this.props.field.name)
@@ -54,15 +70,41 @@ class Question extends PureComponent {
     }
   }
 
-  answerMatches = (answerToMatch) => {
-    if (this.props.multiAnswer) {
-      return this.getAnswer().includes(answerToMatch)
+  answerCanHaveOptionalClarification = () => {
+    const clarificationConfig = this.props.clarification
+
+    if (
+      !clarificationConfig ||
+      !clarificationConfig.hasOwnProperty('optionalWhenValueIs')
+    ) {
+      return false
     }
-    return answerToMatch === this.getAnswer()
+
+    if (Array.isArray(clarificationConfig.optionalWhenValueIs)) {
+      return clarificationConfig.optionalWhenValueIs
+        .some(value => this.answerMatches(value, false))
+    }
+
+    return this.answerMatches(clarificationConfig.optionalWhenValueIs, false)
+  }
+
+  answerMatches = (answerToMatch, acceptMissingAnswerAsMatch = false) => {
+    const answer = this.getAnswer()
+
+    if (this.props.multiAnswer) {
+      return answer.includes(answerToMatch) ||
+             acceptMissingAnswerAsMatch && answer == undefined
+    }
+
+    return answerToMatch === this.getAnswer() ||
+           acceptMissingAnswerAsMatch && answer == undefined
   }
 
   shouldDisplayClarification = () => {
-    return this.hasBeenAnswered() && this.answerRequiresClarification()
+    return this.hasBeenAnswered() &&
+           this.answerRequiresClarification() ||
+           this.answerCanHaveOptionalClarification() &&
+           this.state.showingOptionalClarification
   }
 
   renderClarification = () => {
@@ -85,24 +127,68 @@ class Question extends PureComponent {
     }
   }
 
+  renderOptionalClarificationHint = () => {
+    if (this.props.condenseLayout) {
+      return null;
+    }
+
+    let style = {
+      transition: 'opacity 150ms, transform 300ms',
+      position: 'absolute',
+      bottom: '-1.25rem',
+      opacity: 0,
+    }
+    
+    if (this.state.isHover) {
+      style = {
+        ...style,
+        opacity: 1,
+        transform: 'translateY(0rem)',
+      }
+    }
+
+    return (
+      <div style={style}>
+        <small className="text-info">
+          <a>
+            <span className="far fa-plus mr-1" />
+            {this.props.optionalClarificationHint || 'Lisää kuvaus toimenpiteestä'}
+          </a>
+        </small>
+      </div>
+    )
+  }
+
   renderQuestion = () => {
+    const canHaveOptionalClarification =
+      this.answerCanHaveOptionalClarification() && !this.props.isSection 
+    const shouldRenderOptionalClarificationHint =
+      canHaveOptionalClarification && !this.state.showingOptionalClarification
 
     const labelWrapperStyles = {
-      ...this.props.depth && !this.props.condenseLayout ? { marginLeft: `${this.props.depth}rem` } : null
+      position: 'relative',
+      transition: 'transform 300ms',
+      ...this.props.depth && !this.props.condenseLayout ? { marginLeft: `${this.props.depth}rem` } : null,
+      ...this.state.isHover && shouldRenderOptionalClarificationHint ? { transform: 'translateY(-0.75rem)' } : null,
     }
 
     const labelEl = (
       <div style={labelWrapperStyles}>
-        {this.props.isSection ?
-          <b>{this.props.label}</b>
-          :
-          <span>{this.props.label}</span>
-        }
-        {this.props.hint &&
-          <div className="text-muted">
-            <small>{this.props.hint}</small>
-          </div>
-        }
+        <div
+          className="question-label-wrapper"
+        >
+          {this.props.isSection ?
+            <b>{this.props.label}</b>
+            :
+            <span>{this.props.label}</span>
+          }
+          {this.props.hint &&
+            <div className="text-muted">
+              <small>{this.props.hint}</small>
+            </div>
+          }
+        </div>
+        {shouldRenderOptionalClarificationHint && this.renderOptionalClarificationHint()}
         {this.shouldDisplayClarification() && this.renderClarification()}
       </div>
     )
@@ -136,8 +222,6 @@ class Question extends PureComponent {
         }
       }
 
-      // nestedWrapperStyle style={this.props.depth > 0 ? { marginLeft: `${this.props.depth}rem`, ...this.props.isLast ? null : { borderBottom: '1px solid rgb(198, 198, 198)' } } : null}
-
       return (
         <div
           className={wrapperClassName}
@@ -147,7 +231,16 @@ class Question extends PureComponent {
             className={nestedWrapperClassName}
             style={nestedWrapperStyle}
           >
-            <div className="py-1 font-weight-bold">
+            <div
+              className={
+                classnames('py-1 font-weight-bold', {
+                  'clickable': canHaveOptionalClarification
+                })
+              }
+              onMouseEnter={this.toggleHover}
+              onMouseLeave={this.toggleHover}
+              onClick={this.toggleOptionalClarification}
+            >
               {labelEl}
             </div>
             <div className="py-1 d-flex flex-row justify-content-between">
@@ -158,26 +251,21 @@ class Question extends PureComponent {
       )
     }
 
-    if (this.props.alignOptionsLeft) {
-      return (
-        <tr>
-          {optionEls}
-          <td>
-            {labelEl}
-          </td>
-        </tr>
-      )
-    } else {
-      return (
-        <tr>
-          <td>
-            {labelEl}
-          </td>
-          {optionEls}
-        </tr>
-      )
-    }
-
+    return (
+      <tr
+        onMouseEnter={this.toggleHover}
+        onMouseLeave={this.toggleHover}
+      >
+        {this.props.alignOptionsLeft && optionEls}
+        <td
+          className={classnames({ 'clickable': canHaveOptionalClarification })}
+          onClick={this.toggleOptionalClarification}
+        >
+          {labelEl}
+        </td>
+        {!this.props.alignOptionsLeft && optionEls}
+      </tr>
+    )
   }
 
   render() {
