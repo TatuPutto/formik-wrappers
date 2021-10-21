@@ -1,15 +1,37 @@
-import React, { PureComponent } from 'react'
+import React, { Fragment, PureComponent } from 'react'
 import { array, bool, func, number, object, string } from 'prop-types'
 import { Field, getIn } from 'formik'
 import classnames from 'classnames'
 import Text from '../Text'
+import { isArray, isEmpty, isNull, isPlainObject, isString, isUndefined, noop } from 'lodash'
 
 
 class Question extends PureComponent {
 
-  state = {
-    isHover: false,
-    showingOptionalClarification: false,
+  constructor(props) {
+    super(props)
+    const intialShowingOptionalClarification =
+      this.answerCanHaveOptionalClarification(props) &&
+      this.clarificationContainsData(props)
+    this.state = {
+      isHover: false,
+      showingOptionalClarification: intialShowingOptionalClarification,
+      clarificationHintInitialRenderDone: false,
+      clarificationHintRenderDelayStarted: false,
+    }
+  }
+  
+  componentDidUpdate(_, prevState) {
+    if (
+      !prevState.clarificationHintRenderDelayStarted &&
+      this.state.clarificationHintRenderDelayStarted
+    ) {
+      setTimeout(() => {
+        this.setState({
+          clarificationHintInitialRenderDone: true,
+        })
+      }, 150)
+    }
   }
 
   toggleHover = () => {
@@ -19,8 +41,18 @@ class Question extends PureComponent {
   }
 
   toggleOptionalClarification = () => {
+    if (this.state.showingOptionalClarification && this.clarificationContainsData()) {
+      if (!confirm(this.props.t('Haluatko varmasti poistaa kuvauksen?'))) {
+        return
+      }
+    }
+
     this.setState({
-      showingOptionalClarification: !this.state.showingOptionalClarification, 
+      showingOptionalClarification: !this.state.showingOptionalClarification,
+    }, () => {
+      if (!this.state.showingOptionalClarification) {
+        this.props.form.setFieldValue(`${this.props.field.name}.clarification`, null, true)
+      }
     })
   }
 
@@ -70,8 +102,8 @@ class Question extends PureComponent {
     }
   }
 
-  answerCanHaveOptionalClarification = () => {
-    const clarificationConfig = this.props.clarification
+  answerCanHaveOptionalClarification = (props = this.props) => {
+    const clarificationConfig = props.clarification
 
     if (
       !clarificationConfig ||
@@ -104,55 +136,116 @@ class Question extends PureComponent {
     return this.hasBeenAnswered() &&
            this.answerRequiresClarification() ||
            this.answerCanHaveOptionalClarification() &&
-           this.state.showingOptionalClarification
+           (this.state.showingOptionalClarification ||
+            this.clarificationContainsData()) ||
+           this.shouldDisplayClarificationIfItContainsData()
+  }
+
+  shouldDisplayClarificationIfItContainsData = () => {
+    if (!getIn(this.props, 'clarification.displayIfFilled')) {
+      return false
+    }
+    return this.clarificationContainsData()
+  }
+
+  clarificationContainsData = (props = this.props) => {
+    const path = `${props.field.name}.clarification`
+    const value = getIn(props.form.values, path)
+
+    if (isNull(value) || isUndefined(value)) {
+      return false
+    }
+
+    if (isArray(value) && isEmpty(value)) {
+      return false
+    }
+
+    if (isString(value) && isEmpty(value.trim())) {
+      return false
+    }
+
+    if (isPlainObject(value)) {
+      if (isEmpty(value)) {
+        return false
+      }
+
+      return Object
+        .values(value)
+        .some(value => !isNull(value) && !isUndefined(value))
+    }
+
+    return true
   }
 
   renderClarification = () => {
     const name = `${this.props.field.name}.clarification`
 
     if (this.props.renderClarification) {
-      return this.props.renderClarification(name, this.props.clarification)
+      return (
+        <div style={{ marginBottom: '1rem', padding: '0rem 0.75rem 0 0.75rem' }}>
+          {this.props.renderClarification(name, this.props.clarification)}
+        </div>
+      )
     } else {
       return (
-        <Field
-          name={name}
-          required={this.props.clarification.required}
-          component={Text}
-          label={{
-            text: this.props.clarification.label,
-            uppercase: true,
-          }}
-        />
+        <div style={{ marginBottom: '1rem', padding: '0rem 0.75rem 0 0.75rem' }}>
+          <Field
+            name={name}
+            required={this.props.clarification.required}
+            component={Text}
+            label={{
+              text: this.props.clarification.label,
+              uppercase: true,
+            }}
+          />
+        </div>
       )
     }
   }
 
   renderOptionalClarificationHint = () => {
     if (this.props.condenseLayout) {
-      return null;
+      return null
     }
 
     let style = {
-      transition: 'opacity 150ms, transform 300ms',
+      transition: 'opacity 120ms ease 50ms',
       position: 'absolute',
       bottom: '-1.25rem',
       opacity: 0,
     }
     
-    if (this.state.isHover) {
+    if (this.state.isHover && this.state.clarificationHintInitialRenderDone) {
       style = {
         ...style,
         opacity: 1,
-        transform: 'translateY(0rem)',
       }
+    }
+
+    if (
+      !this.state.clarificationHintInitialRenderDone &&
+      !this.state.clarificationHintRenderDelayStarted
+    ) {
+      this.setState({
+        clarificationHintRenderDelayStarted: true,
+      })
     }
 
     return (
       <div style={style}>
-        <small className="text-info">
+        <small>
           <a>
-            <span className="far fa-plus mr-1" />
-            {this.props.optionalClarificationHint || 'Lisää kuvaus toimenpiteestä'}
+            {this.state.showingOptionalClarification ?
+              <span className="text-danger">
+                <span className="far fa-trash-alt fa-fw" />
+                {this.props.closeOptionalClarificationHint || 'Poista kuvaus toimenpiteestä'}
+              </span>
+              :
+              <Fragment>
+                <span className="far fa-plus fa-fw" />
+                {this.props.openOptionalClarificationHint || 'Lisää kuvaus toimenpiteestä'}
+              </Fragment>
+            }
           </a>
         </small>
       </div>
@@ -161,21 +254,30 @@ class Question extends PureComponent {
 
   renderQuestion = () => {
     const canHaveOptionalClarification =
-      this.answerCanHaveOptionalClarification() && !this.props.isSection 
-    const shouldRenderOptionalClarificationHint =
-      canHaveOptionalClarification && !this.state.showingOptionalClarification
+      this.answerCanHaveOptionalClarification() && !this.props.isSection
 
     const labelWrapperStyles = {
       position: 'relative',
-      transition: 'transform 300ms',
+      padding: '1rem .75rem .75rem .75rem',
+      overflowY: 'hidden',
       ...this.props.depth && !this.props.condenseLayout ? { marginLeft: `${this.props.depth}rem` } : null,
-      ...this.state.isHover && shouldRenderOptionalClarificationHint ? { transform: 'translateY(-0.75rem)' } : null,
+    }
+
+    const labelInnerWrapperStyles = {
+      transition: 'transform 200ms',
+      ...this.state.isHover && canHaveOptionalClarification && this.state.clarificationHintInitialRenderDone ? { transform: 'translateY(-0.75rem)' } : null
     }
 
     const labelEl = (
-      <div style={labelWrapperStyles}>
+      <div
+        style={labelWrapperStyles}
+        className={classnames({ 'clickable': canHaveOptionalClarification })}
+        onMouseEnter={this.state.showingOptionalClarification && !this.props.disabled ? this.toggleHover : noop}
+        onMouseLeave={this.state.showingOptionalClarification && !this.props.disabled ? this.toggleHover : noop}
+        onClick={this.toggleOptionalClarification}
+      >
         <div
-          className="question-label-wrapper"
+          style={labelInnerWrapperStyles}
         >
           {this.props.isSection ?
             <b>{this.props.label}</b>
@@ -187,9 +289,8 @@ class Question extends PureComponent {
               <small>{this.props.hint}</small>
             </div>
           }
+          {canHaveOptionalClarification && this.renderOptionalClarificationHint()}
         </div>
-        {shouldRenderOptionalClarificationHint && this.renderOptionalClarificationHint()}
-        {this.shouldDisplayClarification() && this.renderClarification()}
       </div>
     )
 
@@ -239,9 +340,11 @@ class Question extends PureComponent {
               }
               onMouseEnter={this.toggleHover}
               onMouseLeave={this.toggleHover}
-              onClick={this.toggleOptionalClarification}
             >
-              {labelEl}
+              <td className="p-0">
+                {labelEl}
+                {this.shouldDisplayClarification() && this.renderClarification()}
+              </td>
             </div>
             <div className="py-1 d-flex flex-row justify-content-between">
               {optionEls}
@@ -253,15 +356,13 @@ class Question extends PureComponent {
 
     return (
       <tr
-        onMouseEnter={this.toggleHover}
-        onMouseLeave={this.toggleHover}
+        onMouseEnter={(this.state.showingOptionalClarification || this.props.disabled) ? noop : this.toggleHover}
+        onMouseLeave={(this.state.showingOptionalClarification || this.props.disabled) ? noop : this.toggleHover}
       >
         {this.props.alignOptionsLeft && optionEls}
-        <td
-          className={classnames({ 'clickable': canHaveOptionalClarification })}
-          onClick={this.toggleOptionalClarification}
-        >
+        <td className="p-0">
           {labelEl}
+          {this.shouldDisplayClarification() && this.renderClarification()}
         </td>
         {!this.props.alignOptionsLeft && optionEls}
       </tr>
@@ -293,6 +394,7 @@ Question.propTypes = {
   clarification: object,
   depth: number,
   renderOptions: func,
+  t: func,
 }
 
 export default Question
