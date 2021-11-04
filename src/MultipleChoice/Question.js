@@ -3,7 +3,7 @@ import { array, bool, func, number, object, string } from 'prop-types'
 import { Field, getIn } from 'formik'
 import classnames from 'classnames'
 import Text from '../Text'
-import { isArray, isEmpty, isNull, isPlainObject, isString, isUndefined, noop } from 'lodash'
+import { get, isArray, isEmpty, isNull, isPlainObject, isString, isUndefined, noop } from 'lodash'
 
 
 class Question extends PureComponent {
@@ -42,7 +42,11 @@ class Question extends PureComponent {
 
   toggleOptionalClarification = () => {
     if (this.state.showingOptionalClarification && this.clarificationContainsData()) {
-      if (!confirm(this.props.t('Haluatko varmasti poistaa kuvauksen?'))) {
+      const confirmationMessage = get(
+        this.props, 'clarification.closeOptionalClarificationConfirmation',
+        'Haluatko varmasti poistaa kuvauksen?'
+      )
+      if (!confirm(this.props.t(confirmationMessage))) {
         return
       }
     }
@@ -238,12 +242,12 @@ class Question extends PureComponent {
             {this.state.showingOptionalClarification ?
               <span className="text-danger">
                 <span className="far fa-trash-alt fa-fw" />
-                {this.props.closeOptionalClarificationHint || 'Poista kuvaus toimenpiteestä'}
+                {get(this.props, 'clarification.closeOptionalClarificationHint', 'Poista kuvaus toimenpiteestä')}
               </span>
               :
               <Fragment>
                 <span className="far fa-plus fa-fw" />
-                {this.props.openOptionalClarificationHint || 'Lisää kuvaus toimenpiteestä'}
+                {get(this.props, 'clarification.openOptionalClarificationHint', 'Lisää kuvaus toimenpiteestä')}
               </Fragment>
             }
           </a>
@@ -271,10 +275,10 @@ class Question extends PureComponent {
     const labelEl = (
       <div
         style={labelWrapperStyles}
-        className={classnames({ 'clickable': canHaveOptionalClarification })}
+        className={classnames({ 'clickable': canHaveOptionalClarification && !this.props.disabled })}
         onMouseEnter={this.state.showingOptionalClarification && !this.props.disabled ? this.toggleHover : noop}
         onMouseLeave={this.state.showingOptionalClarification && !this.props.disabled ? this.toggleHover : noop}
-        onClick={this.toggleOptionalClarification}
+        onClick={this.props.disabled ? noop : this.toggleOptionalClarification}
       >
         <div
           style={labelInnerWrapperStyles}

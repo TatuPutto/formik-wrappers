@@ -470,7 +470,7 @@ const createSelectize = (WrappedSelectize, async = false) => {
               }
            </div>
           }
-          {option.notifications && option.notifications.length &&
+          {(option.notifications && option.notifications.length > 0) &&
             <div className="alert alert-warning pt-1 pb-1 pl-2 pr-2 mt-1 mb-0">
               {option.notifications.length > 1 ?
                 <small>
