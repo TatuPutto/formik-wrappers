@@ -14,6 +14,18 @@ class FieldArray extends PureComponent {
     }
   }
 
+  componentDidMount() {
+    if (!this.props.initializeIfEmpty) {
+      return
+    }
+    
+    const items = getIn(this.props.form.values, this.props.name)
+    
+    if (!items || !items.length) {
+      this.props.push(typeof this.props.initializeIfEmpty === 'object' ? this.props.initializeIfEmpty : {})
+    }
+  }
+
   expandItem = (i) => {
     const isExpanded = this.state.expanded.includes(i)
 
@@ -45,7 +57,7 @@ class FieldArray extends PureComponent {
       shape
     } = this.props
 
-    return children.map((childElConfig) => {
+    return children.map((childElConfig, columnIndex) => {
 
       let fullyQualifiedFieldName
 
@@ -65,7 +77,7 @@ class FieldArray extends PureComponent {
         fullyQualifiedFieldName = `${name}.${index}`
       }
 
-      const Element = this.props.renderField(fullyQualifiedFieldName, childElConfig)
+      const Element = this.props.renderField(fullyQualifiedFieldName, childElConfig, columnIndex)
 
       if (childElConfig.hasOwnProperty('children')) {
         return (
@@ -183,7 +195,6 @@ class FieldArray extends PureComponent {
       accordion = false,
       itemIdProp = 'id',
       itemLabelProp,
-      initializeIfEmpty,
       noResultsMessage = 'noResults',
       createLabel = 'addNewEntry',
       header,
@@ -196,10 +207,6 @@ class FieldArray extends PureComponent {
 
     const items = getIn(values, name)
     const hasItems = items && items.length > 0
-
-    if (initializeIfEmpty) {
-      push({})
-    }
 
     return (
       <Fragment>
