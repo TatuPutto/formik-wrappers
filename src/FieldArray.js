@@ -183,6 +183,7 @@ class FieldArray extends PureComponent {
       accordion = false,
       itemIdProp = 'id',
       itemLabelProp,
+      initializeIfEmpty,
       noResultsMessage = 'noResults',
       createLabel = 'addNewEntry',
       header,
@@ -195,6 +196,10 @@ class FieldArray extends PureComponent {
 
     const items = getIn(values, name)
     const hasItems = items && items.length > 0
+
+    if (initializeIfEmpty) {
+      push({})
+    }
 
     return (
       <Fragment>

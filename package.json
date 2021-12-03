@@ -1,6 +1,6 @@
 {
   "name": "formik-wrappers",
-  "version": "1.6.14",
+  "version": "1.6.15",
   "description": "Wrappers components to integrate third party components with Formik.",
   "main": "./lib/index.js",
   "scripts": {
