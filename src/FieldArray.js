@@ -15,6 +15,14 @@ class FieldArray extends PureComponent {
   }
 
   componentDidMount() {
+    this.initializeIfEmpty()
+  }
+
+  componentDidUpdate() {
+    this.initializeIfEmpty()
+  }
+
+  initializeIfEmpty = () => {
     if (!this.props.initializeIfEmpty) {
       return
     }
