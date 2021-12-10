@@ -138,8 +138,13 @@ class FieldArray extends PureComponent {
   }
 
   renderRowRemoveButton = (index) => {
+    if (!this.canRemoveRow(index)) {
+      return null
+    }
+
     const style = this.props.removeButtonAsFooter ?
       { border: 'none' } : { height: '34px' }
+
     return (
       <button
         type="button"
