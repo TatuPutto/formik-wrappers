@@ -22,14 +22,26 @@ class FieldArray extends PureComponent {
     this.initializeIfEmpty()
   }
 
+  getItems = () => {
+    return getIn(this.props.form.values, this.props.name, [])
+  }
+
+  hasItems = () => {
+    const items = this.getItems()
+    return items && items.length > 0
+  }
+
+  getAmountOfItems = () => {
+    const items = this.getItems()
+    return items ? items.length : 0
+  }
+
   initializeIfEmpty = () => {
     if (!this.props.initializeIfEmpty) {
       return
     }
-    
-    const items = getIn(this.props.form.values, this.props.name)
-    
-    if (!items || !items.length) {
+
+    if (!this.hasItems()) {
       this.props.push(typeof this.props.initializeIfEmpty === 'object' ? this.props.initializeIfEmpty : {})
     }
   }
@@ -48,22 +60,8 @@ class FieldArray extends PureComponent {
     }
   }
 
-  getRows = () => {
-    return this.props.form.values[this.props.name]
-  }
-
-  getAmountOfRows = () => {
-    return this.getRows().length
-  }
-
   renderFields = (index, children) => {
-    const {
-      name,
-      fieldComponent,
-      fieldWrapperComponent,
-      order,
-      shape
-    } = this.props
+    const { name } = this.props
 
     return children.map((childElConfig, columnIndex) => {
 
@@ -101,8 +99,8 @@ class FieldArray extends PureComponent {
     })
   }
 
-  initializeNewRow = (force = false) => {
-    const { order, initialValues } = this.props;
+  initializeNewRow = () => {
+    const { order, initialValues } = this.props
 
     return order.reduce((row, fieldName) => {
       if (initialValues && initialValues.hasOwnProperty(fieldName)) {
@@ -115,34 +113,25 @@ class FieldArray extends PureComponent {
     }, {})
   }
 
-  removeItem = (index) => {
-    if (this.getAmountOfRows() === 1) {
-      this.props.remove(index)
-      this.props.insert(index, this.initializeNewRow())
-    } else {
-      this.props.remove(index)
-    }
-  }
-
-  canRemoveRow = (index) => {
+  canRemoveItem = (index) => {
     if (this.props.initializeIfEmpty) {
       return true
     }
 
-    if (this.getAmountOfRows() === 1 && this.isEmptyRow(index)) {
+    if (this.getAmountOfItems() === 1 && this.isEmptyItem(index)) {
       return false
     }
     
     return true
   }
 
-  isEmptyRow = (index) => {
-    const rows = this.getRows()
-    return Object.values(rows[index]).every((value) => !value)
+  isEmptyItem = (index) => {
+    const items = this.getItems()
+    return Object.values(items[index]).every(value => !value)
   }
 
   renderRowRemoveButton = (index) => {
-    if (!this.canRemoveRow(index)) {
+    if (!this.canRemoveItem(index)) {
       return null
     }
 
@@ -154,7 +143,7 @@ class FieldArray extends PureComponent {
         type="button"
         className="btn btn-outline-danger ml-1"
         style={style}
-        onClick={() => this.removeItem(index)}
+        onClick={() => this.props.remove(index)}
       >
         <span className="far fa-trash-alt" />
         {this.props.removeLabel &&
@@ -164,36 +153,33 @@ class FieldArray extends PureComponent {
     );
   }
 
-  renderRow = (item, index) => {
+  renderRow = (index) => {
     const {
-      form: { values },
-      name,
-      push,
-      controlled = true,
       rowElement: RowElement,
       newRowForEachItem = true,
       removable = false,
       removeButtonAsFooter = false,
     } = this.props
 
-    const shouldRenderRemoveButton = removable && !removeButtonAsFooter;
+    const shouldRenderRemoveButton = removable && !removeButtonAsFooter
+    const rowContent = [
+      this.renderFields(index, this.props.shape),
+      shouldRenderRemoveButton ? this.renderRowRemoveButton(index) : null,
+    ]
 
     return (
       <Fragment>
         {newRowForEachItem && RowElement ?
           <RowElement>
-            {this.renderFields(index, this.props.shape)}
-            {shouldRenderRemoveButton && this.renderRowRemoveButton(index)}
+            {rowContent}
           </RowElement>
           : newRowForEachItem ?
             <div className="row">
-              {this.renderFields(index, this.props.shape)}
-              {shouldRenderRemoveButton && this.rend(index)}
+              {rowContent}
             </div>
             :
             <Fragment>
-              {this.renderFields(index, this.props.shape)}
-              {shouldRenderRemoveButton && this.renderRowRemoveButton(index)}
+              {rowContent}
             </Fragment>
         }
       </Fragment>
@@ -222,8 +208,8 @@ class FieldArray extends PureComponent {
       removeButtonAsFooter = false,
     } = this.props
 
-    const items = getIn(values, name)
-    const hasItems = items && items.length > 0
+    const items = this.getItems()
+    const hasItems = this.hasItems()
 
     return (
       <Fragment>
@@ -258,7 +244,7 @@ class FieldArray extends PureComponent {
                   </div>
                   <Collapse expanded={isExpanded}>
                     <div>
-                      {this.renderRow(item, i)}
+                      {this.renderRow(i)}
                     </div>
                   </Collapse>
                 </div>
@@ -272,7 +258,7 @@ class FieldArray extends PureComponent {
             return (
               <Fragment key={i}>
                 <hr />
-                {this.renderRow(item, i)}
+                {this.renderRow(i)}
                 <div
                   className={classnames('d-flex', {
                     'justify-content-between': creatable && i === arr.length - 1,
@@ -298,7 +284,7 @@ class FieldArray extends PureComponent {
           }
           return (
             <Fragment key={i}>
-              {this.renderRow(item, i)}
+              {this.renderRow(i)}
               <div
                 className={classnames('d-flex', {
                   'justify-content-between': creatable && i === arr.length - 1,
