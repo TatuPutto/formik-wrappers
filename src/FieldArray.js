@@ -125,11 +125,15 @@ class FieldArray extends PureComponent {
   }
 
   canRemoveRow = (index) => {
-    if (this.getAmountOfRows() === 1 && this.isEmptyRow(index)) {
-      return false
-    } else {
+    if (this.props.initializeIfEmpty) {
       return true
     }
+
+    if (this.getAmountOfRows() === 1 && this.isEmptyRow(index)) {
+      return false
+    }
+    
+    return true
   }
 
   isEmptyRow = (index) => {
