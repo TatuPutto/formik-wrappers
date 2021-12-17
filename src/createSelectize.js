@@ -651,6 +651,7 @@ const createSelectize = (WrappedSelectize, async = false) => {
         control: (base, state) => ({
           ...base,
           ...theme.selectize.control,
+          ...this.props.matchCheckboxHeight ? { minHeight:  '38px', maxHeight:  '38px' } : {},
           ...state.isFocused ? { ...theme.formControl.focus } : {},
           ...state.isDisabled ? { ...theme.formControl.disabled } : { backgroundColor: base.backgroundColor },
         }),
