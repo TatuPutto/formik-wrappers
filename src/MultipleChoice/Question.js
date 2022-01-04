@@ -91,6 +91,10 @@ class Question extends PureComponent {
       return false
     }
 
+    if (this.props.isPrint) {
+      return this.clarificationContainsData()
+    }
+    
     const clarificationConfig = this.props.clarification
 
     if (clarificationConfig.hasOwnProperty('required')) {
@@ -259,10 +263,13 @@ class Question extends PureComponent {
   renderQuestion = () => {
     const canHaveOptionalClarification =
       this.answerCanHaveOptionalClarification() && !this.props.isSection
+    const canDisplayClarification = this.shouldDisplayClarification()
+    const shouldAllocateSpaceForManualClarification =
+      this.props.isPrint && !this.props.isSection && !canDisplayClarification && !!this.props.clarification
 
     const labelWrapperStyles = {
       position: 'relative',
-      padding: '1rem .75rem .75rem .75rem',
+      padding: this.props.isPrint ? '0.25rem 0.75rem' : '1rem .75rem .75rem .75rem',
       overflowY: 'hidden',
       ...this.props.depth && !this.props.condenseLayout ? { marginLeft: `${this.props.depth}rem` } : null,
     }
@@ -271,11 +278,11 @@ class Question extends PureComponent {
       transition: 'transform 200ms',
       ...this.state.isHover && canHaveOptionalClarification && this.state.clarificationHintInitialRenderDone ? { transform: 'translateY(-0.75rem)' } : null
     }
-
+    
     const labelEl = (
       <div
         style={labelWrapperStyles}
-        className={classnames({ 'clickable': canHaveOptionalClarification && !this.props.disabled })}
+        className={classnames('question-wrapper', { 'clickable': canHaveOptionalClarification && !this.props.disabled })}
         onMouseEnter={this.state.showingOptionalClarification && !this.props.disabled ? this.toggleHover : noop}
         onMouseLeave={this.state.showingOptionalClarification && !this.props.disabled ? this.toggleHover : noop}
         onClick={this.props.disabled ? noop : this.toggleOptionalClarification}
@@ -288,10 +295,13 @@ class Question extends PureComponent {
             :
             <span>{this.props.label}</span>
           }
-          {this.props.hint &&
+          {this.props.hint && typeof this.props.hint === 'string' &&
             <div className="text-muted">
               <small>{this.props.hint}</small>
             </div>
+          }
+          {this.props.hint && typeof this.props.hint === 'object' &&
+            this.props.renderHint()
           }
           {canHaveOptionalClarification && this.renderOptionalClarificationHint()}
         </div>
@@ -347,7 +357,8 @@ class Question extends PureComponent {
             >
               <td className="p-0">
                 {labelEl}
-                {this.shouldDisplayClarification() && this.renderClarification()}
+                {canDisplayClarification && this.renderClarification()}
+                {shouldAllocateSpaceForManualClarification && <div style={{ height: '35px' }} />}
               </td>
             </div>
             <div className="py-1 d-flex flex-row justify-content-between">
@@ -366,7 +377,8 @@ class Question extends PureComponent {
         {this.props.alignOptionsLeft && optionEls}
         <td className="p-0">
           {labelEl}
-          {this.shouldDisplayClarification() && this.renderClarification()}
+          {canDisplayClarification && this.renderClarification()}
+          {shouldAllocateSpaceForManualClarification && <div style={{ height: '35px' }} />}
         </td>
         {!this.props.alignOptionsLeft && optionEls}
       </tr>
