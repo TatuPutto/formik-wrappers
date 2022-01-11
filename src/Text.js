@@ -38,16 +38,26 @@ class Text extends PureComponent {
     }
 
     if (!value || value.length === 0) {
-      return value;
+      return value
     }
 
-    const pattern = new RegExp(this.props.normalize);
+    const prevValueLength = this.props.field.value && this.props.field.value.length || 0
+    const valueLength = value && value.length || 0
+    if (prevValueLength > valueLength) {
+      return value
+    }
+
+    const pattern = new RegExp(this.props.normalize)
 
     if (pattern.test(value)) {
-      return value;
+      return value
     }
 
-    return this.props.field.value;
+    if (!this.props.field.value) {
+      return ''
+    }
+
+    return this.props.field.value
   }
 
   renderInputWithAddon = () => {
