@@ -269,7 +269,8 @@ class Question extends PureComponent {
 
     const labelWrapperStyles = {
       position: 'relative',
-      padding: this.props.isPrint ? '0.25rem 0.75rem' : '1rem .75rem .75rem .75rem',
+      // padding: this.props.isPrint ? '0.25rem 0.75rem' : '1rem .75rem .75rem .75rem',
+      padding: this.props.isPrint ? '0.5rem 0.75rem' : '.75rem',
       overflowY: 'hidden',
       ...this.props.depth && !this.props.condenseLayout ? { marginLeft: `${this.props.depth}rem` } : null,
     }
