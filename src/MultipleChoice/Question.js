@@ -157,9 +157,21 @@ class Question extends PureComponent {
   }
 
   clarificationContainsData = (props = this.props) => {
-    const path = `${props.field.name}.clarification`
-    const value = getIn(props.form.values, path)
+    if (!props.field.value) {
+      return false
+    }
 
+    if (Object.keys(props.field.value).length === 1) {
+      return false
+    }
+
+    return Object
+      .entries(props.field.value)
+      .filter(entry => entry[0] !== 'value')
+      .some(entry => this.hasData(entry[1]))
+  }
+
+  hasData = (value) => {
     if (isNull(value) || isUndefined(value)) {
       return false
     }
@@ -190,13 +202,13 @@ class Question extends PureComponent {
 
     if (this.props.renderClarification) {
       return (
-        <div style={{ marginBottom: '1rem', padding: '0rem 0.75rem 0 0.75rem' }}>
+        <div style={{ marginBottom: '0.5rem', padding: '0rem 0.75rem' }}>
           {this.props.renderClarification(name, this.props.clarification)}
         </div>
       )
     } else {
       return (
-        <div style={{ marginBottom: '1rem', padding: '0rem 0.75rem 0 0.75rem' }}>
+        <div style={{ marginBottom: '0.5rem', padding: '0rem 0.75rem' }}>
           <Field
             name={name}
             required={this.props.clarification.required}
