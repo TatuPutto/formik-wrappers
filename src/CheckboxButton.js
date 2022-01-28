@@ -12,6 +12,7 @@ const CheckboxButton = (props) => {
     class: className,
     disabled,
     disableMargin,
+    disableBottomMargin,
     fullWidth,
     multiline,
     size,
@@ -22,6 +23,7 @@ const CheckboxButton = (props) => {
     transparent,
     tabIndex,
     label,
+    truncateLabel,
   } = props
 
   const isChecked = value === true || checked !== undefined && checked;
@@ -36,32 +38,59 @@ const CheckboxButton = (props) => {
     'w-100': fullWidth,
     'text-del': strikethrough,
     [className]: className,
+    'mb-0': disableBottomMargin,
   })
 
-  const labelContent = (
-    <Fragment>
-      <input
-        type="checkbox"
-        name={name}
-        id={id}
-        checked={isChecked}
-        disabled={disabled}
-        tabIndex={tabIndex}
-        style={{ marginRight: text || children ? '4px' : 0 }}
-        onBlur={interactive ? onBlur : () => {}}
-        onChange={interactive ? () => {
-          if (props.hasOwnProperty('onChange')) {
-            props.onChange(!value)
-          }
+  const Checkbox = (
+    <input
+      type="checkbox"
+      name={name}
+      id={id}
+      checked={isChecked}
+      disabled={disabled}
+      tabIndex={tabIndex}
+      style={{ marginRight: text || children ? '4px' : 0 }}
+      onBlur={interactive ? onBlur : () => {}}
+      onChange={interactive ? () => {
+        if (props.hasOwnProperty('onChange')) {
+          props.onChange(!value)
+        }
+        props.form.setFieldValue(name, !value, true)
+      } : () => {}}
+    />
+  )
 
-          props.form.setFieldValue(name, !value, true)
-        } : () => {}}
-      />
+  const Text = (
+    <Fragment>
       {!disableMargin && ' '}
       {children && children}
       {text && text}
     </Fragment>
   )
+
+  const LabelContent = (
+    <Fragment>
+      {Checkbox}
+      {Text}
+    </Fragment>
+  )
+
+  if (truncateLabel) {
+    return (
+      <label
+        hltmfor={id}
+        className={labelClassName}
+        style={style}
+      >
+        <div className="d-flex align-items-center">
+          {Checkbox}
+          <div className="truncate">
+            {Text}
+          </div>
+        </div>
+      </label>
+    );
+  }
 
   if (typeof label === 'function') {
     const Label = label
@@ -69,7 +98,7 @@ const CheckboxButton = (props) => {
       <Label
         labelClassName={labelClassName}
       >
-        {labelContent}
+        {LabelContent}
       </Label>
     )
   }
@@ -80,7 +109,7 @@ const CheckboxButton = (props) => {
       className={labelClassName}
       style={style}
     >
-      {labelContent}
+      {LabelContent}
     </label>
   )
 }
@@ -94,7 +123,8 @@ CheckboxButton.defaultProps = {
   strikethrough: false,
   tabIndex: null,
   style: {},
-  transparent: false
+  transparent: false,
+  truncateLabel: false,
 }
 
 CheckboxButton.propTypes = {
@@ -106,6 +136,7 @@ CheckboxButton.propTypes = {
   fullWidth: bool,
   disabled: bool,
   disableMargin: bool,
+  disableBottomMargin: bool,
   multiline: bool,
   size: string,
   style: object,
@@ -113,6 +144,7 @@ CheckboxButton.propTypes = {
   tabIndex: number,
   transparent: bool,
   label: func,
+  truncateLabel: bool,
 }
 
 export default CheckboxButton

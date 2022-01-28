@@ -1,10 +1,17 @@
 import React from 'react'
 import { bool, func, object, oneOfType } from 'prop-types'
+import classnames from 'classnames';
 import createFieldComponent from './createFieldComponent'
 
 const CheckboxButtonGroup = (props) => {
+  const wrapperClassName = classnames({
+    'btn-group': !props.vertical,
+    'btn-group-vertical': props.vertical,
+    'w-100': props.fullWidth
+  })
+
   return (
-    <div className={props.vertical ? "btn-group-vertical" : "btn-group"}>
+    <div className={wrapperClassName}>
       {props.children}
     </div>
   )
@@ -12,10 +19,12 @@ const CheckboxButtonGroup = (props) => {
 
 CheckboxButtonGroup.defaultProps = {
   vertical: false,
+  fullWidth: false,
 }
 
 CheckboxButtonGroup.propTypes = {
   field: object.isRequired,
+  fullWidth: bool,
   children: oneOfType([func, object]).isRequired,
   vertical: bool,
 }
