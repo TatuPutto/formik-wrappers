@@ -1,6 +1,6 @@
 {
   "name": "formik-wrappers",
-  "version": "1.7.10",
+  "version": "1.8.0",
   "description": "Wrappers components to integrate third party components with Formik.",
   "main": "./lib/index.js",
   "scripts": {
@@ -39,6 +39,7 @@
     "formik": "^1.4.4",
     "html-webpack-plugin": "^3.2.0",
     "jest": "^24.8.0",
+    "lodash": "^4.17.21",
     "moment": "^2.24.0",
     "prop-types": "^15.6.1",
     "react": "^16.4.1",

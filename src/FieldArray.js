@@ -1,8 +1,9 @@
 import React, { PureComponent, Fragment } from 'react'
 import { array, object, oneOfType, string } from 'prop-types'
-import {  getIn } from 'formik'
+import { getIn } from 'formik'
 import Collapse from 'react-smooth-collapse'
 import classnames from 'classnames'
+import { debounce } from 'lodash';
 
 class FieldArray extends PureComponent {
 
@@ -15,15 +16,19 @@ class FieldArray extends PureComponent {
   }
 
   componentDidMount() {
-    this.initializeIfEmpty()
+    this.addNewRowIfNecessary()
   }
 
   componentDidUpdate() {
-    this.initializeIfEmpty()
+    this.addNewRowIfNecessaryDebounced()
   }
 
   getItems = () => {
     return getIn(this.props.form.values, this.props.name, [])
+  }
+
+  getErrors = () => {
+    return getIn(this.props.form.errors, this.props.name)
   }
 
   hasItems = () => {
@@ -36,15 +41,42 @@ class FieldArray extends PureComponent {
     return items ? items.length : 0
   }
 
-  initializeIfEmpty = () => {
-    if (!this.props.initializeIfEmpty) {
+  addNewRowIfNecessary = () => {
+    const items = this.getItems()
+    const initialValue = typeof this.props.initializeIfEmpty === 'object' ?
+      this.props.initializeIfEmpty : {}
+
+    if (!items.length && this.props.initializeIfEmpty) {
+      return this.props.push(initialValue)
+    }
+    
+    if (!items.length && !this.props.initializeIfEmpty) {
       return
     }
 
-    if (!this.hasItems()) {
-      this.props.push(typeof this.props.initializeIfEmpty === 'object' ? this.props.initializeIfEmpty : {})
+    if (!this.props.addNewRowWhenFilled) {
+      return
     }
+    
+    const errors = this.getErrors()
+    const errorsOfLastItem = getIn(errors, items.length - 1)
+
+    if (errorsOfLastItem) {
+      return
+    }
+
+    const lastItem = items[items.length - 1]
+    const lastItemNotFilled = this.props.addNewRowWhenFilled
+      .some(key => !getIn(lastItem, key))
+
+    if (lastItemNotFilled) {
+      return
+    }
+
+    this.props.push(initialValue)
   }
+
+  addNewRowIfNecessaryDebounced = debounce(this.addNewRowIfNecessary, 100)
 
   expandItem = (i) => {
     const isExpanded = this.state.expanded.includes(i)
@@ -186,6 +218,27 @@ class FieldArray extends PureComponent {
     )
   }
 
+  renderDivider = (index) => {
+    if (!this.props.dividerLabel) {
+      return <hr />
+    }
+
+    return (
+      <div className="position-relative my-4">
+        <hr />
+        <h6 style={{
+          position: 'absolute',
+          top: '-10px',
+          background: '#fff',
+          paddingRight: '0.5rem',
+          fontWeight: 'bold',
+        }}>
+          {`${index + 1}. ${this.props.dividerLabel}`}
+        </h6>
+      </div>
+    )
+  }
+
   render() {
     const {
       form: { values },
@@ -193,7 +246,6 @@ class FieldArray extends PureComponent {
       remove,
       insert,
       push,
-      controlled = true,
       creatable = false,
       accordion = false,
       itemIdProp = 'id',
@@ -203,6 +255,8 @@ class FieldArray extends PureComponent {
       header,
       renderHeader,
       displayDivider,
+      displayInitialDivider,
+      dividerLabel,
       children,
       removable = false,
       removeButtonAsFooter = false,
@@ -254,10 +308,10 @@ class FieldArray extends PureComponent {
           </div>
         }
         {!accordion && hasItems && items.map((item, i, arr) => {
-          if (displayDivider && i > 0) {
+          if ((displayDivider || displayDivider == undefined && dividerLabel) && (i > 0 || displayInitialDivider)) {
             return (
               <Fragment key={i}>
-                <hr />
+                {this.renderDivider(i)}
                 {this.renderRow(i)}
                 <div
                   className={classnames('d-flex', {
@@ -326,6 +380,11 @@ class FieldArray extends PureComponent {
       </Fragment>
     )
   }
+}
+
+FieldArray.defaultProps = {
+  controlled: true,
+  addNewRowAutomatically: false,
 }
 
 FieldArray.propTypes = {
