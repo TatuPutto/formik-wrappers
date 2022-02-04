@@ -25,6 +25,16 @@ class Form extends PureComponent {
   //   }
   // }
 
+  renderThead = () => {
+    if (this.props.options.some(option => option.label)) {
+      return (
+        <thead>
+          {this.renderHeaders()}
+        </thead>
+      )
+    }
+  }
+
   renderHeaders = () => {
 
     // Condensed layout does not use headers.
@@ -130,9 +140,7 @@ class Form extends PureComponent {
             'mb-0': this.props.disableGutter,
           })}
         >
-          <thead>
-            {this.renderHeaders()}
-          </thead>
+          {this.renderThead()} 
           <tbody>
             {React.Children.map(this.props.children, (child) => (
               React.cloneElement(child, {

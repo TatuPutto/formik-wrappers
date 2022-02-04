@@ -202,7 +202,7 @@ class Question extends PureComponent {
 
     if (this.props.renderClarification) {
       return (
-        <div style={{ marginBottom: '0.5rem', padding: '0rem 0.75rem' }}>
+        <div style={{ marginBottom: '0.5rem', padding: this.props.checkboxGroupLike ? '0' : '0rem 0.75rem' }}>
           {this.props.renderClarification(name, this.props.clarification)}
         </div>
       )
@@ -272,6 +272,16 @@ class Question extends PureComponent {
     )
   }
 
+  handleLabelClick = () => {
+    if (this.answerCanHaveOptionalClarification()) {
+      this.toggleOptionalClarification()
+    }
+    if (this.props.checkboxGroupLike) {
+      const nextValue = this.props.field.value && this.props.field.value.value ? null : true
+      this.props.form.setFieldValue(`${this.props.field.name}.value`, nextValue, true)
+    }
+  }
+
   renderQuestion = () => {
     const canHaveOptionalClarification =
       this.answerCanHaveOptionalClarification() && !this.props.isSection
@@ -282,9 +292,9 @@ class Question extends PureComponent {
     const labelWrapperStyles = {
       position: 'relative',
       // padding: this.props.isPrint ? '0.25rem 0.75rem' : '1rem .75rem .75rem .75rem',
-      padding: this.props.isPrint ? '0.5rem 0.75rem' : '.75rem',
+      padding: this.props.isPrint && !this.props.checkboxGroupLike ? '0.5rem 0.75rem' : this.props.checkboxGroupLike ? '0.25rem' : '0.75rem',
       overflowY: 'hidden',
-      ...this.props.depth && !this.props.condenseLayout ? { marginLeft: `${this.props.depth}rem` } : null,
+      ...this.props.depth && !this.props.condenseLayout && !this.props.noIndent ? { marginLeft: `${this.props.depth}rem` } : null,
     }
 
     const labelInnerWrapperStyles = {
@@ -298,7 +308,7 @@ class Question extends PureComponent {
         className={classnames('question-wrapper', { 'clickable': canHaveOptionalClarification && !this.props.disabled })}
         onMouseEnter={this.state.showingOptionalClarification && !this.props.disabled ? this.toggleHover : noop}
         onMouseLeave={this.state.showingOptionalClarification && !this.props.disabled ? this.toggleHover : noop}
-        onClick={this.props.disabled ? noop : this.toggleOptionalClarification}
+        onClick={this.props.disabled ? noop : this.handleLabelClick}
       >
         <div
           style={labelInnerWrapperStyles}
@@ -325,11 +335,12 @@ class Question extends PureComponent {
 
     if (!this.props.isSection || this.props.answerable) {
       optionEls = this.props.renderOptions(`${this.props.field.name}.value`)
-    } else {
-      for (let i = 0; i < this.props.options.length; i++) {
-        optionEls.push(<td /> )
-      }
     }
+    // else {
+    //   for (let i = 0; i < this.props.options.length; i++) {
+    //     optionEls.push(<td /> )
+    //   }
+    // }
 
     if (this.props.condenseLayout) {
 
@@ -388,7 +399,13 @@ class Question extends PureComponent {
         onMouseLeave={(this.state.showingOptionalClarification || this.props.disabled) ? noop : this.toggleHover}
       >
         {this.props.alignOptionsLeft && optionEls}
-        <td className="p-0">
+        <td
+          className="p-0"
+          colSpan={this.props.isSection && !this.props.answerable ? this.props.options.length + 1 : null}
+          style={{
+            ...this.props.checkboxGroupLike ? { border: 'none', cursor: 'pointer' } : null,
+          }}
+        >
           {labelEl}
           {canDisplayClarification && this.renderClarification()}
           {shouldAllocateSpaceForManualClarification && <div style={{ height: '35px' }} />}
