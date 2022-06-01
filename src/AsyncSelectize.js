@@ -1,9 +1,8 @@
 import { bool, func, object, oneOfType, string } from 'prop-types'
 import AsyncSelect from 'react-select/lib/Async'
-import createFieldComponent from './createFieldComponent'
 import createSelectize from './createSelectize'
 
-const AsyncSelectize = createFieldComponent(createSelectize(AsyncSelect, true))
+const AsyncSelectize = createSelectize(AsyncSelect, true)
 
 AsyncSelectize.propTypes = {
   field: object.isRequired,

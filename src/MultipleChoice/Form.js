@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react'
 import { bool, object, oneOfType, number, string } from 'prop-types'
 import classnames from 'classnames'
-import { Field } from 'formik'
+import { Field, getIn } from 'formik'
 import OptionControl from './OptionControl'
 
 
@@ -38,26 +38,45 @@ class Form extends PureComponent {
   renderHeaders = () => {
 
     // Condensed layout does not use headers.
-    if (this.props.condenseLayout) {
+    if (this.props.condenseLayout || this.props.noOptionHeadings) {
       return
-      // return (
-      //   <div className="d-flex flex-row justify-content-between">
-      //     {this.renderOptionHeaders()}
-      //   </div>
-      // )
     }
 
     if (this.props.alignOptionsLeft) {
       return (
         <tr>
           {this.renderOptionHeaders()}
-          <th style={{ borderTop: 'none' }} />
+          {this.props.heading ?
+            <th
+              className="no-border pr-0" 
+              style={{ borderTop: 'none' }}
+            >
+              {this.props.heading}
+            </th>
+            :  
+            <th
+              className="no-border" 
+              style={{ borderTop: 'none' }}
+            />
+          }
         </tr>
       )
     } else {
       return (
         <tr>
-          <th style={{ borderTop: 'none' }} />
+          {this.props.heading ?
+            <th
+              className="no-border pl-0" 
+              style={{ borderTop: 'none' }}
+            >
+              {this.props.heading}
+            </th>
+            :  
+            <th
+              className="no-border" 
+              style={{ borderTop: 'none' }}
+            />
+          }
           {this.renderOptionHeaders()}
         </tr>
       )
@@ -85,7 +104,7 @@ class Form extends PureComponent {
     return this.props.options.map((option, i) => (
       <th
         key={i}
-        className="text-center flex-grow-1"
+        className="text-center flex-grow-1 no-border"
         style={{
           width: this.props.optionColumnWidth,
           borderTop: 'none',

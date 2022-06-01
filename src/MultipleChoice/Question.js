@@ -202,7 +202,14 @@ class Question extends PureComponent {
 
     if (this.props.renderClarification) {
       return (
-        <div style={{ marginBottom: '0.5rem', padding: this.props.checkboxGroupLike ? '0' : '0rem 0.75rem' }}>
+        <div
+          style={{
+            marginBottom: '0.5rem',
+            padding: this.props.checkboxGroupLike ? '0' : '0rem 0.75rem',
+            marginLeft: this.props.checkboxGroupLike ? '-20px' :
+              this.props.clarification.matchIndent ? `${this.props.depth * 1}rem` : null,
+          }}
+        >
           {this.props.renderClarification(name, this.props.clarification)}
         </div>
       )
@@ -291,8 +298,7 @@ class Question extends PureComponent {
 
     const labelWrapperStyles = {
       position: 'relative',
-      // padding: this.props.isPrint ? '0.25rem 0.75rem' : '1rem .75rem .75rem .75rem',
-      padding: this.props.isPrint && !this.props.checkboxGroupLike ? '0.5rem 0.75rem' : this.props.checkboxGroupLike ? '0.25rem' : '0.75rem',
+      padding: this.props.isPrint && !this.props.checkboxGroupLike ? '0.25rem 0.75rem' : this.props.checkboxGroupLike ? '0.25rem' : '0.75rem',
       overflowY: 'hidden',
       ...this.props.depth && !this.props.condenseLayout && !this.props.noIndent ? { marginLeft: `${this.props.depth}rem` } : null,
     }
@@ -305,7 +311,10 @@ class Question extends PureComponent {
     const labelEl = (
       <div
         style={labelWrapperStyles}
-        className={classnames('question-wrapper', { 'clickable': canHaveOptionalClarification && !this.props.disabled })}
+        className={classnames('question-wrapper', {
+          'clickable': canHaveOptionalClarification && !this.props.disabled,
+          'checkbox-like': this.props.isPrint || this.props.checkboxGroupLike,
+        })}
         onMouseEnter={this.state.showingOptionalClarification && !this.props.disabled ? this.toggleHover : noop}
         onMouseLeave={this.state.showingOptionalClarification && !this.props.disabled ? this.toggleHover : noop}
         onClick={this.props.disabled ? noop : this.handleLabelClick}
@@ -336,6 +345,27 @@ class Question extends PureComponent {
     if (!this.props.isSection || this.props.answerable) {
       optionEls = this.props.renderOptions(`${this.props.field.name}.value`)
     }
+
+    if (this.props.isSection && this.props.showOptions && !this.props.answerable) {
+      optionEls = this.props.options.map(option => {
+        return (
+          <td
+            key={option.value}
+            className="text-center"
+            style={{
+              width: this.props.optionColumnWidth,
+            }}
+          >
+            <b>
+              <div
+                dangerouslySetInnerHTML={{ __html: option.label }} // eslint-disable-line
+              />
+            </b>
+          </td>
+        )
+      })
+    }
+
     // else {
     //   for (let i = 0; i < this.props.options.length; i++) {
     //     optionEls.push(<td /> )
@@ -382,7 +412,7 @@ class Question extends PureComponent {
               <td className="p-0">
                 {labelEl}
                 {canDisplayClarification && this.renderClarification()}
-                {shouldAllocateSpaceForManualClarification && <div style={{ height: '35px' }} />}
+                {shouldAllocateSpaceForManualClarification && <div style={{ height: '20px' }} />}
               </td>
             </div>
             <div className="py-1 d-flex flex-row justify-content-between">
@@ -400,15 +430,15 @@ class Question extends PureComponent {
       >
         {this.props.alignOptionsLeft && optionEls}
         <td
-          className="p-0"
-          colSpan={this.props.isSection && !this.props.answerable ? this.props.options.length + 1 : null}
+          className={classnames('p-0', { 'no-border': this.props.checkboxGroupLike })}
+          colSpan={this.props.isSection && !this.props.showOptions && !this.props.answerable ? this.props.options.length + 1 : null}
           style={{
             ...this.props.checkboxGroupLike ? { border: 'none', cursor: 'pointer' } : null,
           }}
         >
           {labelEl}
           {canDisplayClarification && this.renderClarification()}
-          {shouldAllocateSpaceForManualClarification && <div style={{ height: '35px' }} />}
+          {shouldAllocateSpaceForManualClarification && <div style={{ height: '20px' }} />}
         </td>
         {!this.props.alignOptionsLeft && optionEls}
       </tr>

@@ -93,6 +93,9 @@ class FieldArray extends PureComponent {
   }
 
   renderFields = (index, children) => {
+
+    // return this.props.renderRow(index, children);
+
     const { name } = this.props
 
     return children.map((childElConfig, columnIndex) => {

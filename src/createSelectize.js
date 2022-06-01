@@ -11,15 +11,19 @@ const Control = (props) => (
 const createSelectize = (WrappedSelectize, async = false) => {
   return class Selectize extends PureComponent {
     componentDidUpdate(prevProps) {
-      const prevOptions = prevProps.options;
-      const nextOptions = this.props.options;
-
-      if (
-        this.props.autoSelectWhenSingleOption &&
-        get(nextOptions, 'length') === 1 &&
-        !isEqual(prevOptions, nextOptions)
-      ) {
-        this.handleChange(this.createOption(this.props.options[0]));
+      const prevOptions = prevProps.options
+      const nextOptions = this.props.options
+      const optionsHaveChanged = !isEqual(prevOptions, nextOptions)
+      const hasOnlyOneOption = get(nextOptions, 'length') === 1
+      const hasCreatedValue = isPlainObject(this.props.field.value) &&
+                              this.props.field.value.__isNew__
+      const shouldAutoSelectFirstOption = this.props.autoSelectWhenSingleOption &&
+                                          hasOnlyOneOption &&
+                                          optionsHaveChanged &&
+                                          !hasCreatedValue
+      
+      if (shouldAutoSelectFirstOption) {
+        this.handleChange(this.createOption(this.props.options[0]))
       }
     }
 

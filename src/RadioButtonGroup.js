@@ -3,7 +3,6 @@ import { array, bool, object, string } from 'prop-types'
 // import { Field } from 'formik'
 // import RadioButton from './RadioButton'
 import classnames from 'classnames';
-import createFieldComponent from './createFieldComponent'
 
 
 const RadioButtonGroup = (props) => {
@@ -50,4 +49,4 @@ RadioButtonGroup.propTypes = {
   vertical: bool,
 }
 
-export default createFieldComponent(RadioButtonGroup)
+export default RadioButtonGroup

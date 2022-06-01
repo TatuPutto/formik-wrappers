@@ -1,8 +1,6 @@
 import React, { PureComponent } from 'react'
 import { bool, func, object, string } from 'prop-types'
 import classnames from 'classnames'
-import createFieldComponent from './createFieldComponent'
-
 
 class Text extends PureComponent {
 
@@ -166,4 +164,4 @@ Text.propTypes = {
   uppercase: bool,
 }
 
-export default createFieldComponent(Text)
+export default Text

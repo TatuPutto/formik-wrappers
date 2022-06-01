@@ -1,7 +1,6 @@
 import React from 'react'
 import { bool, func, object, oneOfType } from 'prop-types'
 import classnames from 'classnames';
-import createFieldComponent from './createFieldComponent'
 
 const CheckboxButtonGroup = (props) => {
   const wrapperClassName = classnames({
@@ -29,4 +28,4 @@ CheckboxButtonGroup.propTypes = {
   vertical: bool,
 }
 
-export default createFieldComponent(CheckboxButtonGroup)
+export default CheckboxButtonGroup

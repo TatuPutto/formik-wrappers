@@ -148,4 +148,3 @@ CheckboxButton.propTypes = {
 }
 
 export default CheckboxButton
-// export default createFieldComponent(CheckboxButton)

@@ -2,7 +2,6 @@ import React from 'react'
 import { bool, func, string } from 'prop-types'
 import classnames from 'classnames'
 
-
 const renderIcon = (required, hasErrors, hasValue, iconPosition = 'start') => {
   const iconClassName = classnames('fas', {
     'fa-check text-success': required && !hasErrors && hasValue,

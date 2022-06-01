@@ -1,6 +1,7 @@
 /* eslint-disable */
 'use strict'
 const path = require('path')
+// const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 module.exports = {
   mode: 'production',
@@ -9,6 +10,12 @@ module.exports = {
     path: path.resolve(__dirname, 'lib'),
     filename: 'index.js',
     libraryTarget: 'commonjs2'
+  },
+  // plugins: [
+  //   new BundleAnalyzerPlugin(),
+  // ],
+  optimization: {
+    minimize: true
   },
   module: {
     rules: [

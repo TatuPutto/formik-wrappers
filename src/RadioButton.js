@@ -1,8 +1,6 @@
 import React from 'react'
 import { bool, object, oneOfType, number, string } from 'prop-types'
 import classnames from 'classnames'
-import createFieldComponent from './createFieldComponent'
-
 
 const RadioButton = (props) => {
   const {
@@ -114,7 +112,4 @@ RadioButton.propTypes = {
   tabIndex: number
 }
 
-export default createFieldComponent(
-  RadioButton,
-  { withLabel: false, withError: false, withWrapper: false }
-)
+export default RadioButton
