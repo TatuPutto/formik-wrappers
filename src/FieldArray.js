@@ -232,7 +232,7 @@ class FieldArray extends PureComponent {
         <h6 style={{
           position: 'absolute',
           top: '-10px',
-          background: '#fff',
+          background: '#f5f6f8',
           paddingRight: '0.5rem',
           fontWeight: 'bold',
         }}>

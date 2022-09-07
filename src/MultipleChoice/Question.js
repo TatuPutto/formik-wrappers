@@ -265,12 +265,12 @@ class Question extends PureComponent {
             {this.state.showingOptionalClarification ?
               <span className="text-danger">
                 <span className="far fa-trash-alt fa-fw" />
-                {get(this.props, 'clarification.closeOptionalClarificationHint', 'Poista kuvaus toimenpiteestä')}
+                {this.props.t(get(this.props, 'clarification.closeOptionalClarificationHint', 'removeCountermeasure'))}
               </span>
               :
               <Fragment>
                 <span className="far fa-plus fa-fw" />
-                {get(this.props, 'clarification.openOptionalClarificationHint', 'Lisää kuvaus toimenpiteestä')}
+                {this.props.t(get(this.props, 'clarification.openOptionalClarificationHint', 'addCountermeasure'))}
               </Fragment>
             }
           </a>
