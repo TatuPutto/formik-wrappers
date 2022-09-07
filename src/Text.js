@@ -5,12 +5,13 @@ import classnames from 'classnames'
 class Text extends PureComponent {
 
   getInputClassName = () => {
-    const { className, capitalize, uppercase, lowercase } = this.props
+    const { className, capitalize, uppercase, lowercase, align } = this.props
 
     return classnames(className, {
       'text-lowercase': lowercase,
       'text-uppercase': uppercase,
-      'text-capitalize': capitalize
+      'text-capitalize': capitalize,
+      [`text-${align}`]: align,
     })
   }
 
@@ -150,6 +151,7 @@ Text.propTypes = {
   form: object.isRequired,
   field: object.isRequired,
   addon: string,
+  align: string,
   autoComplete: bool,
   capitalize: bool,
   className: string,

@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react'
+import React, { Fragment, PureComponent } from 'react'
 import { components } from 'react-select'
 import { get, set, has, isEmpty, isEqual, isFunction, isString, isPlainObject, isArray } from 'lodash'
 
@@ -11,20 +11,50 @@ const Control = (props) => (
 const createSelectize = (WrappedSelectize, async = false) => {
   return class Selectize extends PureComponent {
     componentDidUpdate(prevProps) {
+      this.autoSelect(prevProps)
+    }
+
+    autoSelect = (prevProps) => {
+      if (this.props.autoSelectWhenSingleOption) {
+        this.autoSelectSingleOption(prevProps)
+      } else if (this.props.autoSelectAllOptions) {
+        this.autoSelectAllOptionOptions(prevProps)
+      }
+    }
+
+    autoSelectSingleOption = (prevProps) => {
       const prevOptions = prevProps.options
       const nextOptions = this.props.options
       const optionsHaveChanged = !isEqual(prevOptions, nextOptions)
       const hasOnlyOneOption = get(nextOptions, 'length') === 1
       const hasCreatedValue = isPlainObject(this.props.field.value) &&
                               this.props.field.value.__isNew__
-      const shouldAutoSelectFirstOption = this.props.autoSelectWhenSingleOption &&
-                                          hasOnlyOneOption &&
+      const shouldAutoSelectFirstOption = hasOnlyOneOption &&
                                           optionsHaveChanged &&
                                           !hasCreatedValue
-      
-      if (shouldAutoSelectFirstOption) {
-        this.handleChange(this.createOption(this.props.options[0]))
+
+      if (!shouldAutoSelectFirstOption) {
+        return
       }
+
+      if (this.props.isMulti) {
+        this.handleChange([this.createOption(this.props.options[0])])
+        return
+      }
+
+      this.handleChange(this.createOption(this.props.options[0]))
+    }
+
+    autoSelectAllOptionOptions = (prevProps) => {
+      const prevOptions = prevProps.options
+      const nextOptions = this.props.options
+      const optionsHaveChanged = !isEqual(prevOptions, nextOptions)
+      const hasValue = isArray(this.props.field.value) && this.props.field.value.length 
+      const shouldAutoSelectAllOptions = optionsHaveChanged && !hasValue
+
+      if (shouldAutoSelectAllOptions) {
+        this.handleChange(this.props.options.map(this.createOption))
+      } 
     }
 
     createIdNamePair = (option) => {
@@ -364,11 +394,11 @@ const createSelectize = (WrappedSelectize, async = false) => {
         onChange,
       } = this.props
 
-      const conversionOptions = this.getValueConversionOptions();
+      const conversionOptions = this.getValueConversionOptions()
 
       const preparedNewValue = newValue && isMulti ?
         newValue.map(this.createIdNamePair) : newValue && !isMulti ?
-          this.createIdNamePair(newValue) : null;
+          this.createIdNamePair(newValue) : null
 
       // Call custom onChange handler.
       if (onChange) {
@@ -644,6 +674,25 @@ const createSelectize = (WrappedSelectize, async = false) => {
       )
     }
 
+    renderSelectAllOptionsButton = () => {
+      if (!this.props.isMassSelectable || this.props.options.length < 2) {
+        return null
+      }
+
+      if (this.props.field.value && this.props.field.value.length === this.props.options.length) {
+        return null
+      }
+
+      return (
+        <button
+          className="btn btn-sm btn-link px-0 py-1"
+          onClick={() => this.handleChange(this.props.options.map(this.createOption))}
+        >
+          {this.props.t(this.props.massSelectLabel || 'selectAll')}
+        </button>
+      );
+    }
+
     getStyles = () => {
       const { styles, viewTheme: theme } = this.props;
 
@@ -684,33 +733,36 @@ const createSelectize = (WrappedSelectize, async = false) => {
 
     render() {
       return (
-        <WrappedSelectize
-          {...this.props}
-          {...this.getTypeSpecificProps()}
-          ref={this.props.selectizeRef}
-          isDisabled={this.props.disabled || false}
-          value={this.convertObjectToValue()}
-          noOptionsMessage={this.getNoOptionsMessage}
-          formatCreateLabel={this.getCreateLabel}
-          onChange={this.handleChange}
-          styles={this.getStyles()}
-          components={{
-            ...get(this.props, 'components'),
-            ...has(this.props, 'components.Control') ?
-              { Control: get(this.props, 'components.Control') } :
-              { Control: Control },
-            ...has(this.props, 'components.MenuList') ?
-              { MenuList: get(this.props, 'components.MenuList') } :
-              { MenuList: this.renderMenuList },
-            ...has(this.props, 'components.Option') ?
-              { Option: get(this.props, 'components.Option') } :
-              { Option: this.renderOption },
-            ...get(this.props, 'translateLabel') ?
-              { SingleValue: this.renderTranslatedSingleValue } : null,
-          }}
-          {...this.props.handleSearchChange ?
-            { onInputChange: this.props.handleSearchChange } : null}
-        />
+        <Fragment>
+          <WrappedSelectize
+            {...this.props}
+            {...this.getTypeSpecificProps()}
+            ref={this.props.selectizeRef}
+            isDisabled={this.props.disabled || false}
+            value={this.convertObjectToValue()}
+            noOptionsMessage={this.getNoOptionsMessage}
+            formatCreateLabel={this.getCreateLabel}
+            onChange={this.handleChange}
+            styles={this.getStyles()}
+            components={{
+              ...get(this.props, 'components'),
+              ...has(this.props, 'components.Control') ?
+                { Control: get(this.props, 'components.Control') } :
+                { Control: Control },
+              ...has(this.props, 'components.MenuList') ?
+                { MenuList: get(this.props, 'components.MenuList') } :
+                { MenuList: this.renderMenuList },
+              ...has(this.props, 'components.Option') ?
+                { Option: get(this.props, 'components.Option') } :
+                { Option: this.renderOption },
+              ...get(this.props, 'translateLabel') ?
+                { SingleValue: this.renderTranslatedSingleValue } : null,
+            }}
+            {...this.props.handleSearchChange ?
+              { onInputChange: this.props.handleSearchChange } : null}
+          />
+          {this.renderSelectAllOptionsButton()}
+        </Fragment>
       )
     }
   }

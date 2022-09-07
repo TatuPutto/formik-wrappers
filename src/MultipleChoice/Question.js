@@ -3,7 +3,7 @@ import { array, bool, func, number, object, string } from 'prop-types'
 import { Field, getIn } from 'formik'
 import classnames from 'classnames'
 import Text from '../Text'
-import { get, isArray, isEmpty, isNull, isPlainObject, isString, isUndefined, noop } from 'lodash'
+import { get, has, isArray, isEmpty, isNull, isPlainObject, isString, isUndefined, noop } from 'lodash'
 
 
 class Question extends PureComponent {
@@ -38,6 +38,15 @@ class Question extends PureComponent {
     this.setState({
       isHover: !this.state.isHover, 
     })
+  }
+
+  toggleQuestionCriticality = () => {
+    console.log('prev value', this.props.field.value);
+    this.props.form.setFieldValue(
+      `${this.props.field.name}.isCritical`,
+      !get(this.props.field, 'value.isCritical'),
+      true
+    )
   }
 
   toggleOptionalClarification = () => {
@@ -110,6 +119,27 @@ class Question extends PureComponent {
     }
   }
 
+  questionCanBeFlaggedAsCritical = (props = this.props) => {
+    if (get(props, 'canBeFlaggedAsCritical')) {
+      return true
+    }
+
+    if (!has(props, 'canBeFlaggedAsCriticalWhenAnswerIs')) {
+      return false
+    }
+
+    if (Array.isArray(props.canBeFlaggedAsCriticalWhenAnswerIs)) {
+      return props.canBeFlaggedAsCriticalWhenAnswerIs
+        .some(value => this.answerMatches(value, false))
+    }
+
+    return this.answerMatches(props.canBeFlaggedAsCriticalWhenAnswerIs, false)
+  }
+
+  questionIsFlaggedAsCritical = () => {
+    return get(this.props.field, 'value.isCritical')
+  }
+
   answerCanHaveOptionalClarification = (props = this.props) => {
     const clarificationConfig = props.clarification
 
@@ -117,6 +147,10 @@ class Question extends PureComponent {
       !clarificationConfig ||
       !clarificationConfig.hasOwnProperty('optionalWhenValueIs')
     ) {
+      return false
+    }
+
+    if (this.questionCanBeFlaggedAsCritical(props)) {
       return false
     }
 
@@ -230,6 +264,55 @@ class Question extends PureComponent {
     }
   }
 
+  renderFlagAsCriticalHint = () => {
+    if (this.props.condenseLayout) {
+      return null
+    }
+
+    let style = {
+      transition: 'opacity 120ms ease 50ms',
+      position: 'absolute',
+      bottom: '-1.25rem',
+      opacity: 0,
+    }
+    
+    if (this.state.isHover && this.state.clarificationHintInitialRenderDone) {
+      style = {
+        ...style,
+        opacity: 1,
+      }
+    }
+
+    if (
+      !this.state.clarificationHintInitialRenderDone &&
+      !this.state.clarificationHintRenderDelayStarted
+    ) {
+      this.setState({
+        clarificationHintRenderDelayStarted: true,
+      })
+    }
+
+    return (
+      <div style={style}>
+        <small>
+          <a>
+            {this.questionIsFlaggedAsCritical() ?
+              <span className="text-danger">
+                <span className="far fa-trash-alt fa-fw mr-1" />
+                {this.props.t('removeCriticalFlag')}
+              </span>
+              :
+              <Fragment>
+                <span className="far fa-exclamation-triangle fa-fw mr-1" />
+                {this.props.t('flagAsCritical')}
+              </Fragment>
+            }
+          </a>
+        </small>
+      </div>
+    )
+  }
+
   renderOptionalClarificationHint = () => {
     if (this.props.condenseLayout) {
       return null
@@ -280,6 +363,9 @@ class Question extends PureComponent {
   }
 
   handleLabelClick = () => {
+    if (this.questionCanBeFlaggedAsCritical()) {
+      this.toggleQuestionCriticality()
+    }
     if (this.answerCanHaveOptionalClarification()) {
       this.toggleOptionalClarification()
     }
@@ -290,8 +376,10 @@ class Question extends PureComponent {
   }
 
   renderQuestion = () => {
+    const canBeFlaggedAsCritical = this.questionCanBeFlaggedAsCritical()
     const canHaveOptionalClarification =
-      this.answerCanHaveOptionalClarification() && !this.props.isSection
+      !this.props.isSection && this.answerCanHaveOptionalClarification()
+    const shouldOffsetLabelOnHover = canBeFlaggedAsCritical || canHaveOptionalClarification  
     const canDisplayClarification = this.shouldDisplayClarification()
     const shouldAllocateSpaceForManualClarification =
       this.props.isPrint && !this.props.isSection && !canDisplayClarification && !!this.props.clarification
@@ -305,14 +393,14 @@ class Question extends PureComponent {
 
     const labelInnerWrapperStyles = {
       transition: 'transform 200ms',
-      ...this.state.isHover && canHaveOptionalClarification && this.state.clarificationHintInitialRenderDone ? { transform: 'translateY(-0.75rem)' } : null
+      ...this.state.isHover && shouldOffsetLabelOnHover && this.state.clarificationHintInitialRenderDone ? { transform: 'translateY(-0.75rem)' } : null
     }
     
     const labelEl = (
       <div
         style={labelWrapperStyles}
         className={classnames('question-wrapper', {
-          'clickable': canHaveOptionalClarification && !this.props.disabled,
+          'clickable': shouldOffsetLabelOnHover && !this.props.disabled,
           'checkbox-like': this.props.isPrint || this.props.checkboxGroupLike,
         })}
         onMouseEnter={this.state.showingOptionalClarification && !this.props.disabled ? this.toggleHover : noop}
@@ -335,6 +423,7 @@ class Question extends PureComponent {
           {this.props.hint && typeof this.props.hint === 'object' &&
             this.props.renderHint()
           }
+          {canBeFlaggedAsCritical && this.renderFlagAsCriticalHint()}
           {canHaveOptionalClarification && this.renderOptionalClarificationHint()}
         </div>
       </div>
