@@ -34,6 +34,18 @@ class Question extends PureComponent {
     }
   }
 
+  openHover = () => {
+    this.setState({
+      isHover: true,
+    })
+  }
+
+  closeHover = () => {
+    this.setState({
+      isHover: false,
+    })
+  }
+
   toggleHover = () => {
     this.setState({
       isHover: !this.state.isHover, 
@@ -41,7 +53,10 @@ class Question extends PureComponent {
   }
 
   toggleQuestionCriticality = () => {
-    console.log('prev value', this.props.field.value);
+    if (!get(this.props.form.values, [this.props.field.name, 'isCritical'])) {
+      this.toggleHover()
+    }
+
     this.props.form.setFieldValue(
       `${this.props.field.name}.isCritical`,
       !get(this.props.field, 'value.isCritical'),
@@ -124,7 +139,10 @@ class Question extends PureComponent {
       return true
     }
 
-    if (!has(props, 'canBeFlaggedAsCriticalWhenAnswerIs')) {
+    if (
+      !has(props, 'canBeFlaggedAsCriticalWhenAnswerIs') ||
+      isUndefined(props.canBeFlaggedAsCriticalWhenAnswerIs)
+    ) {
       return false
     }
 
@@ -201,7 +219,7 @@ class Question extends PureComponent {
 
     return Object
       .entries(props.field.value)
-      .filter(entry => entry[0] !== 'value')
+      .filter(entry => entry[0] !== 'value' && entry[0] !== 'isCritical')
       .some(entry => this.hasData(entry[1]))
   }
 
@@ -296,14 +314,9 @@ class Question extends PureComponent {
       <div style={style}>
         <small>
           <a>
-            {this.questionIsFlaggedAsCritical() ?
-              <span className="text-danger">
-                <span className="far fa-trash-alt fa-fw mr-1" />
-                {this.props.t('removeCriticalFlag')}
-              </span>
-              :
+            {!this.questionIsFlaggedAsCritical() &&
               <Fragment>
-                <span className="far fa-exclamation-triangle fa-fw mr-1" />
+                <span className="fas fa-exclamation-circle mr-1" />
                 {this.props.t('flagAsCritical')}
               </Fragment>
             }
@@ -363,7 +376,7 @@ class Question extends PureComponent {
   }
 
   handleLabelClick = () => {
-    if (this.questionCanBeFlaggedAsCritical()) {
+    if (this.questionCanBeFlaggedAsCritical() || this.questionIsFlaggedAsCritical()) {
       this.toggleQuestionCriticality()
     }
     if (this.answerCanHaveOptionalClarification()) {
@@ -375,7 +388,34 @@ class Question extends PureComponent {
     }
   }
 
+  renderCriticalBadge = () => {
+    const badge = (
+      <span className={classnames('badge badge-orange', {
+        'badge-sm': this.props.disabled,
+      })}>
+        <span className="far fa-exclamation-circle mr-1" />
+        {this.props.t('critical')}
+        {!this.props.disabled &&
+          <span
+            className="fal fa-times fa-fw"
+            style={{
+              position: 'relative',
+              left: '5px',
+            }}
+          />
+        }
+      </span>
+    )
+
+    return (
+      <div>
+        {badge}
+      </div>
+    )
+  }
+
   renderQuestion = () => {
+    const isFlaggedAsCritical = this.questionIsFlaggedAsCritical()
     const canBeFlaggedAsCritical = this.questionCanBeFlaggedAsCritical()
     const canHaveOptionalClarification =
       !this.props.isSection && this.answerCanHaveOptionalClarification()
@@ -388,6 +428,7 @@ class Question extends PureComponent {
       position: 'relative',
       padding: this.props.isPrint && !this.props.checkboxGroupLike ? '0.25rem 0.75rem' : this.props.checkboxGroupLike ? '0.25rem' : '0.75rem',
       overflowY: 'hidden',
+      ...isFlaggedAsCritical && this.props.disabled && !this.props.alignOptionsLeft ? { paddingTop: '1.25rem' } : null,
       ...this.props.depth && !this.props.condenseLayout && !this.props.noIndent ? { marginLeft: `${this.props.depth}rem` } : null,
     }
 
@@ -403,8 +444,8 @@ class Question extends PureComponent {
           'clickable': shouldOffsetLabelOnHover && !this.props.disabled,
           'checkbox-like': this.props.isPrint || this.props.checkboxGroupLike,
         })}
-        onMouseEnter={this.state.showingOptionalClarification && !this.props.disabled ? this.toggleHover : noop}
-        onMouseLeave={this.state.showingOptionalClarification && !this.props.disabled ? this.toggleHover : noop}
+        onMouseEnter={this.state.showingOptionalClarification && !isFlaggedAsCritical && !this.props.disabled ? this.openHover : noop}
+        onMouseLeave={this.state.showingOptionalClarification && !isFlaggedAsCritical && !this.props.disabled ? this.closeHover : noop}
         onClick={this.props.disabled ? noop : this.handleLabelClick}
       >
         <div
@@ -423,6 +464,9 @@ class Question extends PureComponent {
           {this.props.hint && typeof this.props.hint === 'object' &&
             this.props.renderHint()
           }
+          {isFlaggedAsCritical &&
+            this.renderCriticalBadge()
+          }
           {canBeFlaggedAsCritical && this.renderFlagAsCriticalHint()}
           {canHaveOptionalClarification && this.renderOptionalClarificationHint()}
         </div>
@@ -432,7 +476,7 @@ class Question extends PureComponent {
     let optionEls = []
 
     if (!this.props.isSection || this.props.answerable) {
-      optionEls = this.props.renderOptions(`${this.props.field.name}.value`)
+      optionEls = this.props.renderOptions(`${this.props.field.name}.value`, `${this.props.field.name}`)
     }
 
     if (this.props.isSection && this.props.showOptions && !this.props.answerable) {
@@ -495,8 +539,8 @@ class Question extends PureComponent {
                   'clickable': canHaveOptionalClarification
                 })
               }
-              onMouseEnter={this.toggleHover}
-              onMouseLeave={this.toggleHover}
+              onMouseEnter={this.openHover}
+              onMouseLeave={this.closeHover}
             >
               <td className="p-0">
                 {labelEl}
@@ -514,12 +558,15 @@ class Question extends PureComponent {
 
     return (
       <tr
-        onMouseEnter={(this.state.showingOptionalClarification || this.props.disabled) ? noop : this.toggleHover}
-        onMouseLeave={(this.state.showingOptionalClarification || this.props.disabled) ? noop : this.toggleHover}
+        onMouseEnter={(this.props.disabled || this.state.showingOptionalClarification || isFlaggedAsCritical) ? noop : this.openHover}
+        onMouseLeave={(this.props.disabled || this.state.showingOptionalClarification || isFlaggedAsCritical) ? noop : this.closeHover}
       >
         {this.props.alignOptionsLeft && optionEls}
         <td
-          className={classnames('p-0', { 'no-border': this.props.checkboxGroupLike })}
+          className={classnames('p-0', {
+            'no-border': this.props.checkboxGroupLike,
+            'critical': isFlaggedAsCritical && this.props.disabled,
+          })}
           colSpan={this.props.isSection && !this.props.showOptions && !this.props.answerable ? this.props.options.length + 1 : null}
           style={{
             ...this.props.checkboxGroupLike ? { border: 'none', cursor: 'pointer' } : null,
