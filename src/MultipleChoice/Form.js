@@ -151,6 +151,7 @@ class Form extends PureComponent {
       <div
         className={classnames('multiple-choice', {
           'align-options-left': this.props.alignOptionsLeft,
+          [this.props.class]: this.props.class,
         })}
       >
         <table
@@ -181,12 +182,14 @@ Form.defaultProps = {
   striped: true,
   tabIndex: null,
   optionColumnWidth: '15%',
+  class: '',
 }
 
 Form.propTypes = {
   field: object.isRequired,
   checkedValue: oneOfType([bool, string]).isRequired,
   children: oneOfType([object, string]),
+  class: string,
   text: string,
   align: string,
   disabled: bool,

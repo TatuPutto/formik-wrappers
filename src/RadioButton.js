@@ -7,6 +7,7 @@ const RadioButton = (props) => {
     form: { setFieldValue },
     field: { name, value, onBlur },
     onChange,
+    color,
     children,
     text,
     align,
@@ -25,7 +26,8 @@ const RadioButton = (props) => {
 
   const checked = value === checkedValue
   const labelClassName = classnames({
-    'btn btn-outline-secondary mb-0': !transparent,
+    'btn mb-0': !transparent,
+    [`btn-${color}`]: color && !transparent,
     'active': checked,
     'disabled': disabled,
     [`btn-${size}`]: size,
@@ -95,6 +97,7 @@ RadioButton.defaultProps = {
   fullWidth: false,
   transparent: false,
   tabIndex: null,
+  color: 'outline-secondary',
 }
 
 RadioButton.propTypes = {
