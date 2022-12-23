@@ -10,6 +10,7 @@ const CheckboxButton = (props) => {
     children,
     checked,
     class: className,
+    color,
     disabled,
     disableMargin,
     disableBottomMargin,
@@ -29,7 +30,8 @@ const CheckboxButton = (props) => {
   const isChecked = value === true || checked !== undefined && checked;
   const labelClassName = classnames({
     'clickable': interactive && !disabled,
-    'btn btn-outline-secondary': !transparent,
+    'btn': !transparent,
+    [`btn-${color}`]: color && !transparent,
     'btn-multiline text-left': multiline,
     [`btn-${size}`]: size,
     'active': isChecked,
@@ -125,11 +127,13 @@ CheckboxButton.defaultProps = {
   style: {},
   transparent: false,
   truncateLabel: false,
+  color: 'outline-secondary',
 }
 
 CheckboxButton.propTypes = {
   field: object.isRequired,
   children: oneOfType([object, string]),
+  color: string,
   text: string,
   id: string,
   align: string,

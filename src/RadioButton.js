@@ -104,6 +104,7 @@ RadioButton.propTypes = {
   field: object.isRequired,
   checkedValue: oneOfType([bool, string]).isRequired,
   children: oneOfType([object, string]),
+  color: string,
   text: string,
   interactive: bool,
   transparent: bool,
