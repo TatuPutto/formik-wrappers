@@ -418,7 +418,7 @@ class Question extends PureComponent {
     const isFlaggedAsCritical = this.questionIsFlaggedAsCritical()
     const canBeFlaggedAsCritical = this.questionCanBeFlaggedAsCritical()
     const canHaveOptionalClarification =
-      !this.props.isSection && this.answerCanHaveOptionalClarification()
+      !this.props.isSection && (this.answerCanHaveOptionalClarification() || this.answer)
     const shouldOffsetLabelOnHover = canBeFlaggedAsCritical || canHaveOptionalClarification  
     const canDisplayClarification = this.shouldDisplayClarification()
     const shouldAllocateSpaceForManualClarification =
